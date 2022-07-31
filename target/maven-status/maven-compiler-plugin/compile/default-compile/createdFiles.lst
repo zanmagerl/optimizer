@@ -1,0 +1,13 @@
+si\fri\mag\magerl\models\opcode\PseudoOpCode.class
+si\fri\mag\magerl\models\opcode\OpCode.class
+si\fri\mag\magerl\phases\impl\CleaningPhaseImpl.class
+si\fri\mag\magerl\phases\Pipeline.class
+si\fri\mag\magerl\models\opcode\InstructionOpCode.class
+si\fri\mag\magerl\models\RawInstruction.class
+si\fri\mag\magerl\phases\impl\StandardLibraryPhaseImpl$Subprogram.class
+si\fri\mag\magerl\models\Instruction.class
+si\fri\mag\magerl\Main.class
+si\fri\mag\magerl\phases\Phase.class
+si\fri\mag\magerl\CommandLineProcessor.class
+si\fri\mag\magerl\utils\FileUtil.class
+si\fri\mag\magerl\phases\impl\StandardLibraryPhaseImpl.class
