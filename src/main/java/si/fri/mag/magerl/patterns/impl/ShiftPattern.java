@@ -39,4 +39,9 @@ public class ShiftPattern implements Pattern {
                 && secondInstruction.getInstruction().getFirstOperand().equals(secondInstruction.getInstruction().getSecondOperand())
                 && firstInstruction.getInstruction().getFirstOperand().equals(secondInstruction.getInstruction().getFirstOperand());
     }
+
+    private boolean couldReplaceShiftBlockWithSet(RawInstruction firstInstruction, RawInstruction secondInstruction) {
+
+        return false;
+    }
 }

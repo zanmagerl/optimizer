@@ -2,6 +2,30 @@
 	.text ! mmixal:= 9H LOC 8B
 	.p2align 2
 	LOC @+(4-@)&3
+	.global abs
+abs	IS @
+	SUBU $254,$254,16
+	STOU $253,$254,8
+	ADDU $253,$254,16
+	SET $1,$0
+	SUBU $0,$253,12
+	STTU $1,$0,0
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	BNN $0,L:2
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	NEGU $0,0,$0
+	JMP L:3
+L:2	IS @
+	SUBU $0,$253,12
+	LDT $0,$0,0
+L:3	IS @
+	LDO $253,$254,8
+	ADDU $254,$254,16
+	POP 1,0
+	.p2align 2
+	LOC @+(4-@)&3
 	.global print_char
 Buffer	BYTE	"1",0
 	.p2align 2
@@ -33,8 +57,8 @@ print_string	IS @
 	SUBU $0,$253,12
 	SETL $1,0
 	STTU $1,$0,0
-	JMP L:3
-L:4	IS @
+	JMP L:6
+L:7	IS @
 	SUBU $0,$253,12
 	LDT $0,$0,0
 	SUBU $1,$253,24
@@ -48,15 +72,14 @@ L:4	IS @
 	LDT $1,$1,0
 	ADDU $1,$1,1
 	STTU $1,$0,0
-L:3	IS @
+L:6	IS @
 	SUBU $0,$253,12
 	LDT $0,$0,0
 	SUBU $1,$253,24
 	LDO $1,$1,0
 	ADDU $0,$1,$0
 	LDB $0,$0,0
-	CMP $0,$0,0
-	BNZ $0,L:4
+	BNZ $0,L:7
 	LDO $253,$254,16
 	ADDU $254,$254,24
 	PUT rJ,$2
@@ -74,13 +97,11 @@ print_integer	IS @
 	STTU $2,$0,0
 	SUBU $0,$253,20
 	LDT $0,$0,0
-	CMP $0,$0,0
-	BNP $0,L:7
+	BNP $0,L:10
 	SUBU $0,$253,20
 	LDT $0,$0,0
 	SETL $3,#a
 	SET $4,$0
-	SET $5,$3
 	XOR $255,$4,$5
 	NEGU $2,0,$5
 	CSN $5,$5,$2
@@ -98,7 +119,6 @@ print_integer	IS @
 	LDT $0,$0,0
 	SETL $3,#a
 	SET $4,$0
-	SET $5,$3
 	NEGU $2,0,$5
 	CSN $5,$5,$2
 	NEGU $255,0,$4
@@ -116,7 +136,7 @@ print_integer	IS @
 	SR $0,$0,56
 	SET $7,$0
 	PUSHJ $6,print_char
-L:7	IS @
+L:10	IS @
 	LDO $253,$254,16
 	ADDU $254,$254,24
 	PUT rJ,$1
@@ -125,157 +145,405 @@ L:7	IS @
 	.p2align 2
 	LOC @+(4-@)&3
 LC:0	IS @
-	BYTE "Move disk 1 from rod ",#0
+	BYTE "This is a solution number ",#0
 	.p2align 2
 	LOC @+(4-@)&3
 LC:1	IS @
-	BYTE " to rod ",#0
+	BYTE #a,#a,#0
 	.p2align 2
 	LOC @+(4-@)&3
 LC:2	IS @
-	BYTE "Move disk ",#0
+	BYTE #9,"Q",#0
 	.p2align 2
 	LOC @+(4-@)&3
 LC:3	IS @
-	BYTE " from rod ",#0
+	BYTE #9,"-",#0
 	.text ! mmixal:= 9H LOC 8B
 	.p2align 2
 	LOC @+(4-@)&3
-	.global towerOfHanoi
-towerOfHanoi	IS @
-	SUBU $254,$254,24
-	STOU $253,$254,16
-	ADDU $253,$254,24
-	GET $4,rJ
-	SET $7,$0
-	SET $6,$1
-	SET $5,$2
-	SET $2,$3
-	SUBU $0,$253,12
-	SET $1,$7
-	STTU $1,$0,0
-	SUBU $0,$253,16
-	SET $1,$6
-	STBU $1,$0,0
+	.global print
+print	IS @
+	SUBU $254,$254,32
+	STOU $253,$254,24
+	ADDU $253,$254,32
+	GET $3,rJ
+	SET $5,$0
+	SET $4,$1
+	SUBU $0,$253,32
+	STOU $2,$0,0
 	SUBU $0,$253,20
 	SET $1,$5
-	STBU $1,$0,0
+	STTU $1,$0,0
 	SUBU $0,$253,24
+	SET $1,$4
+	STTU $1,$0,0
+	GETA $7,LC:0
+	PUSHJ $6,print_string
+	SUBU $0,$253,24
+	SUBU $1,$253,24
+	LDT $1,$1,0
+	ADDU $1,$1,1
+	STTU $1,$0,0
+	SUBU $0,$253,24
+	LDT $0,$0,0
+	SET $7,$0
+	PUSHJ $6,print_integer
+	SETL $7,#a
+	PUSHJ $6,print_char
+	SUBU $0,$253,12
+	SETL $1,#1
+	STTU $1,$0,0
+	JMP L:12
+L:13	IS @
+	SETL $7,#9
+	PUSHJ $6,print_char
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	SET $7,$0
+	PUSHJ $6,print_integer
+	SUBU $0,$253,12
+	SUBU $1,$253,12
+	LDT $1,$1,0
+	ADDU $1,$1,1
+	STTU $1,$0,0
+L:12	IS @
+	SUBU $1,$253,12
+	SUBU $0,$253,20
+	LDT $1,$1,0
+	LDT $0,$0,0
+	CMP $0,$1,$0
+	BNP $0,L:13
+	SUBU $0,$253,12
+	SETL $1,#1
+	STTU $1,$0,0
+	JMP L:14
+L:19	IS @
+	GETA $7,LC:1
+	PUSHJ $6,print_string
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	SET $7,$0
+	PUSHJ $6,print_integer
+	SUBU $0,$253,16
+	SETL $1,#1
+	STTU $1,$0,0
+	JMP L:15
+L:18	IS @
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	SLU $0,$0,2
+	SUBU $1,$253,32
+	LDO $1,$1,0
+	ADDU $0,$1,$0
+	LDT $0,$0,0
+	SUBU $1,$253,16
+	LDT $1,$1,0
+	SLU $0,$0,32
+	SR $0,$0,32
+	CMP $0,$1,$0
+	BNZ $0,L:16
+	GETA $7,LC:2
+	PUSHJ $6,print_string
+	JMP L:17
+L:16	IS @
+	GETA $7,LC:3
+	PUSHJ $6,print_string
+L:17	IS @
+	SUBU $0,$253,16
+	SUBU $1,$253,16
+	LDT $1,$1,0
+	ADDU $1,$1,1
+	STTU $1,$0,0
+L:15	IS @
+	SUBU $1,$253,16
+	SUBU $0,$253,20
+	LDT $1,$1,0
+	LDT $0,$0,0
+	CMP $0,$1,$0
+	BNP $0,L:18
+	SUBU $0,$253,12
+	SUBU $1,$253,12
+	LDT $1,$1,0
+	ADDU $1,$1,1
+	STTU $1,$0,0
+L:14	IS @
+	SUBU $1,$253,12
+	SUBU $0,$253,20
+	LDT $1,$1,0
+	LDT $0,$0,0
+	CMP $0,$1,$0
+	BNP $0,L:19
+	SETL $7,#a
+	PUSHJ $6,print_char
+	SUBU $0,$253,24
+	LDT $0,$0,0
+	LDO $253,$254,24
+	ADDU $254,$254,32
+	PUT rJ,$3
+	POP 1,0
+	.p2align 2
+	LOC @+(4-@)&3
+	.global place
+place	IS @
+	SUBU $254,$254,32
+	STOU $253,$254,24
+	ADDU $253,$254,32
+	SET $4,$0
+	SET $3,$1
+	SUBU $0,$253,32
+	STOU $2,$0,0
+	SUBU $0,$253,20
+	SET $1,$4
+	STTU $1,$0,0
+	SUBU $0,$253,24
+	SET $1,$3
+	STTU $1,$0,0
+	SUBU $0,$253,12
+	SETL $1,#1
+	STTU $1,$0,0
+	JMP L:22
+L:28	IS @
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	SLU $0,$0,2
+	SUBU $1,$253,32
+	LDO $1,$1,0
+	ADDU $0,$1,$0
+	LDT $0,$0,0
+	SUBU $1,$253,24
+	LDT $1,$1,0
+	SLU $0,$0,32
+	SR $0,$0,32
+	CMP $0,$1,$0
+	BNZ $0,L:23
+	SETL $0,0
+	JMP L:24
+L:23	IS @
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	SLU $0,$0,2
+	SUBU $1,$253,32
+	LDO $1,$1,0
+	ADDU $0,$1,$0
+	LDT $1,$0,0
+	SUBU $0,$253,24
+	LDT $0,$0,0
+	SUBU $0,$1,$0
+	SET $1,$0
+	SLU $0,$1,32
+	SR $0,$0,32
+	BNN $0,L:25
+	NEGU $0,0,$1
+	SET $1,$0
+L:25	IS @
+	SET $2,$1
+	SUBU $1,$253,12
+	SUBU $0,$253,20
+	LDT $1,$1,0
+	LDT $0,$0,0
+	SUBU $0,$1,$0
+	SET $1,$0
+	SLU $0,$1,32
+	SR $0,$0,32
+	BNN $0,L:26
+	NEGU $0,0,$1
+	SET $1,$0
+L:26	IS @
+	SET $0,$1
+	SLU $1,$2,32
+	SR $1,$1,32
+	SLU $0,$0,32
+	SR $0,$0,32
+	CMP $0,$1,$0
+	BNZ $0,L:27
+	SETL $0,0
+	JMP L:24
+L:27	IS @
+	SUBU $0,$253,12
+	SUBU $1,$253,12
+	LDT $1,$1,0
+	ADDU $1,$1,1
+	STTU $1,$0,0
+L:22	IS @
+	SUBU $0,$253,20
+	LDT $0,$0,0
+	SUBU $0,$0,1
+	SET $2,$0
+	SUBU $0,$253,12
+	LDT $0,$0,0
+	SLU $1,$0,32
+	SR $1,$1,32
+	SLU $0,$2,32
+	SR $0,$0,32
+	CMP $0,$1,$0
+	BNP $0,L:28
+	SETL $0,#1
+L:24	IS @
+	LDO $253,$254,24
+	ADDU $254,$254,32
+	POP 1,0
+	.p2align 2
+	LOC @+(4-@)&3
+	.global queen
+queen	IS @
+	SUBU $254,$254,40
+	STOU $253,$254,32
+	ADDU $253,$254,40
+	GET $4,rJ
+	SET $6,$0
+	SET $5,$1
+	SUBU $0,$253,40
+	STOU $3,$0,0
+	SUBU $0,$253,20
+	SET $1,$6
+	STTU $1,$0,0
+	SUBU $0,$253,24
+	SET $1,$5
+	STTU $1,$0,0
+	SUBU $0,$253,28
 	SET $1,$2
-	STBU $1,$0,0
+	STTU $1,$0,0
+	SUBU $0,$253,12
+	SETL $1,#1
+	STTU $1,$0,0
+	JMP L:30
+L:33	IS @
+	SUBU $2,$253,40
 	SUBU $0,$253,12
 	LDT $0,$0,0
-	CMP $0,$0,1
-	BNZ $0,L:9
-	GETA $9,LC:0
-	PUSHJ $8,print_string
-	SUBU $0,$253,16
-	LDB $0,$0,0
-	SET $9,$0
-	PUSHJ $8,print_char
-	GETA $9,LC:1
-	PUSHJ $8,print_string
+	SLU $1,$0,32
+	SR $1,$1,32
 	SUBU $0,$253,20
-	LDB $0,$0,0
-	SET $9,$0
-	PUSHJ $8,print_char
-	SETL $9,#a
-	PUSHJ $8,print_char
-	JMP L:8
-L:9	IS @
-	SUBU $0,$253,12
 	LDT $0,$0,0
-	SUBU $0,$0,1
-	SET $5,$0
-	SUBU $0,$253,20
-	LDB $0,$0,0
-	SLU $3,$0,56
-	SR $3,$3,56
-	SUBU $0,$253,24
-	LDB $0,$0,0
-	SLU $2,$0,56
-	SR $2,$2,56
-	SUBU $0,$253,16
-	LDB $0,$0,0
-	SLU $1,$0,56
-	SR $1,$1,56
-	SLU $0,$5,32
+	LDO $10,$2,0
+	SET $9,$1
+	SET $8,$0
+	PUSHJ $7,place
+	SET $0,$7
+	SLU $0,$0,32
 	SR $0,$0,32
-	SET $12,$3
-	SET $11,$2
-	SET $10,$1
-	SET $9,$0
-	PUSHJ $8,towerOfHanoi
-	GETA $9,LC:2
-	PUSHJ $8,print_string
-	SUBU $0,$253,12
-	LDT $0,$0,0
-	SET $9,$0
-	PUSHJ $8,print_integer
-	GETA $9,LC:3
-	PUSHJ $8,print_string
-	SUBU $0,$253,16
-	LDB $0,$0,0
-	SET $9,$0
-	PUSHJ $8,print_char
-	GETA $9,LC:1
-	PUSHJ $8,print_string
+	BZ $0,L:31
 	SUBU $0,$253,20
-	LDB $0,$0,0
-	SET $9,$0
-	PUSHJ $8,print_char
-	SETL $9,#a
-	PUSHJ $8,print_char
-	SUBU $0,$253,12
 	LDT $0,$0,0
-	SUBU $0,$0,1
-	SET $5,$0
-	SUBU $0,$253,16
-	LDB $0,$0,0
-	SLU $3,$0,56
-	SR $3,$3,56
-	SUBU $0,$253,20
-	LDB $0,$0,0
-	SLU $2,$0,56
-	SR $2,$2,56
+	SLU $0,$0,2
+	SUBU $1,$253,40
+	LDO $1,$1,0
+	ADDU $0,$1,$0
+	SUBU $1,$253,12
+	LDT $2,$1,0
+	STTU $2,$0,0
+	SUBU $1,$253,20
 	SUBU $0,$253,24
-	LDB $0,$0,0
-	SLU $1,$0,56
-	SR $1,$1,56
-	SLU $0,$5,32
+	LDT $1,$1,0
+	LDT $0,$0,0
+	CMP $0,$1,$0
+	BNZ $0,L:32
+	SUBU $2,$253,28
+	SUBU $3,$253,40
+	SUBU $0,$253,28
+	LDT $0,$0,0
+	SLU $1,$0,32
+	SR $1,$1,32
+	SUBU $0,$253,24
+	LDT $0,$0,0
+	LDO $10,$3,0
+	SET $9,$1
+	SET $8,$0
+	PUSHJ $7,print
+	STTU $7,$2,0
+	JMP L:31
+L:32	IS @
+	SUBU $0,$253,20
+	LDT $0,$0,0
+	ADDU $0,$0,1
+	SET $6,$0
+	SUBU $3,$253,28
+	SUBU $5,$253,40
+	SUBU $0,$253,28
+	LDT $0,$0,0
+	SLU $2,$0,32
+	SR $2,$2,32
+	SUBU $0,$253,24
+	LDT $0,$0,0
+	SLU $1,$0,32
+	SR $1,$1,32
+	SLU $0,$6,32
 	SR $0,$0,32
-	SET $12,$3
-	SET $11,$2
-	SET $10,$1
-	SET $9,$0
-	PUSHJ $8,towerOfHanoi
-L:8	IS @
-	LDO $253,$254,16
-	ADDU $254,$254,24
+	LDO $11,$5,0
+	SET $10,$2
+	SET $9,$1
+	SET $8,$0
+	PUSHJ $7,queen
+	STTU $7,$3,0
+L:31	IS @
+	SUBU $0,$253,12
+	SUBU $1,$253,12
+	LDT $1,$1,0
+	ADDU $1,$1,1
+	STTU $1,$0,0
+L:30	IS @
+	SUBU $1,$253,12
+	SUBU $0,$253,24
+	LDT $1,$1,0
+	LDT $0,$0,0
+	CMP $0,$1,$0
+	BNP $0,L:33
+	SUBU $0,$253,28
+	LDT $0,$0,0
+	LDO $253,$254,32
+	ADDU $254,$254,40
 	PUT rJ,$4
-	POP 0,0
+	POP 1,0
+	.section	.rodata
+	.p2align 2
+	LOC @+(4-@)&3
+LC:4	IS @
+	BYTE "There are total ",#0
+	.p2align 2
+	LOC @+(4-@)&3
+LC:5	IS @
+	BYTE " solutions for 8-queens problem.",#a,#0
+	.text ! mmixal:= 9H LOC 8B
 	.p2align 2
 	LOC @+(4-@)&3
 	.global main
 main	IS @
-	SUBU $254,$254,16
-	STOU $253,$254,8
-	ADDU $253,$254,16
-	GET $1,rJ
-	SUBU $0,$253,12
-	SETL $2,#4
-	STTU $2,$0,0
-	SUBU $0,$253,12
-	LDT $0,$0,0
-	SETL $7,#42
-	SETL $6,#43
-	SETL $5,#41
-	SET $4,$0
-	PUSHJ $3,towerOfHanoi
+	SUBU $254,$254,48
+	STOU $253,$254,40
+	ADDU $253,$254,48
+	GET $0,rJ
+	SUBU $1,$253,12
+	SETL $2,#8
+	STTU $2,$1,0
+	SUBU $1,$253,16
+	SETL $2,0
+	STTU $2,$1,0
+	SUBU $3,$253,16
+	SUBU $4,$253,48
+	SUBU $1,$253,16
+	LDT $1,$1,0
+	SLU $2,$1,32
+	SR $2,$2,32
+	SUBU $1,$253,12
+	LDT $1,$1,0
+	SET $9,$4
+	SET $8,$2
+	SET $7,$1
+	SETL $6,#1
+	PUSHJ $5,queen
+	STTU $5,$3,0
+	GETA $6,LC:4
+	PUSHJ $5,print_string
+	SUBU $1,$253,16
+	LDT $1,$1,0
+	SET $6,$1
+	PUSHJ $5,print_integer
+	GETA $6,LC:5
+	PUSHJ $5,print_string
 	SETL $0,0
-	LDO $253,$254,8
-	ADDU $254,$254,16
-	PUT rJ,$1
+	LDO $253,$254,40
+	ADDU $254,$254,48
+	PUT rJ,$0
 	POP 1,0
 	.data ! mmixal:= 8H LOC 9B
 Main    IS	@
@@ -287,4 +555,3 @@ Main    IS	@
     SETH $253,#4000
     SETH $252,#3000
     PUSHJ 2,main
-    TRAP  0,Halt,0

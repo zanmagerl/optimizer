@@ -1,7 +1,10 @@
 package si.fri.mag.magerl.models.opcode;
 
+import si.fri.mag.magerl.models.Instruction;
+
 import java.beans.IntrospectionException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public enum InstructionOpCode implements OpCode {
@@ -134,6 +137,13 @@ public enum InstructionOpCode implements OpCode {
     // Non-official opcodes
     SET
     ;
+    private static final List<InstructionOpCode> BRANCH_INSTRUCTIONS = List.of(
+            BN, BZ, BP, BOD, BNN, BNZ, BNP, BEV, PBN, PBZ, PBP, PBOD, PBNN, PBNZ, PBNP, PBEV
+    );
+
+    private static final List<InstructionOpCode> STORE_INSTRUCTIONS = List.of(
+            STB, STW, STT, STO, STBU, STWU, STTU, STOU
+    );
 
     public static Optional<InstructionOpCode> from(String opCode) {
         return Arrays.stream(InstructionOpCode.values()).filter(o -> o.name().equals(opCode)).findFirst();
@@ -141,5 +151,13 @@ public enum InstructionOpCode implements OpCode {
 
     public static boolean isSignedLoadInstruction(InstructionOpCode instructionOpCode) {
         return instructionOpCode == LDB || instructionOpCode == LDW || instructionOpCode == LDT || instructionOpCode == LDO;
+    }
+
+    public static boolean isBranchInstruction(InstructionOpCode instructionOpCode) {
+        return BRANCH_INSTRUCTIONS.contains(instructionOpCode);
+    }
+
+    public static boolean isStoreInstruction(InstructionOpCode instructionOpCode) {
+        return STORE_INSTRUCTIONS.contains(instructionOpCode);
     }
 }
