@@ -54,7 +54,7 @@ public class Instruction {
             Optional<PseudoOpCode> pseudoOpCode = PseudoOpCode.from(parts.get(0));
             if (pseudoOpCode.isPresent()) {
                 opCode = pseudoOpCode.get();
-                firstOperand = parts.get(1);
+                firstOperand = String.join(" ", parts.subList(1, parts.size()));
             } else {
                 throw new IllegalArgumentException("[Unparsable instruction] Not known opcode: " + rawInstruction);
             }

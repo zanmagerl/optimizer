@@ -27,23 +27,23 @@ L:3	IS @
 	.p2align 2
 	LOC @+(4-@)&3
 	.global print_char
-Buffer	BYTE	"1",0
-	.p2align 2
+Buffer	BYTE "1",0
+	    .p2align 2
 	LOC @+(4-@)&3
-	.global print_char
+	    .global print_char
 print_char	IS @
-    SUBU $254,$254,16
-    STOU $253,$254,8
-    ADDU $253,$254,16
-    SET	$2,$0
-    GETA	$1,Buffer
-    SET		$0,$2
-    STB		$0,$1,0
-    SET		$255,$1
-    TRAP	0,Fputs,StdOut
-    LDO $253,$254,8
-    ADDU $254,$254,16
-    POP 0,0
+	SUBU $254,$254,16
+	STOU $253,$254,8
+	ADDU $253,$254,16
+	SET $2,$0
+	GETA $1,Buffer
+	SET $0,$2
+	STB $0,$1,0
+	SET $255,$1
+	TRAP 0,Fputs,StdOut
+	LDO $253,$254,8
+	ADDU $254,$254,16
+	POP 0,0
 	.p2align 2
 	LOC @+(4-@)&3
 	.global print_string
@@ -67,6 +67,7 @@ L:7	IS @
 	LDB $0,$0,0
 	SET $4,$0
 	PUSHJ $3,print_char
+	PUT rJ,$2
 	SUBU $0,$253,12
 	SUBU $1,$253,12
 	LDT $1,$1,0
@@ -82,7 +83,6 @@ L:6	IS @
 	BNZ $0,L:7
 	LDO $253,$254,16
 	ADDU $254,$254,24
-	PUT rJ,$2
 	POP 0,0
 	.p2align 2
 	LOC @+(4-@)&3
@@ -100,7 +100,7 @@ print_integer	IS @
 	BNP $0,L:10
 	SUBU $0,$253,20
 	LDT $0,$0,0
-	SETL $3,#a
+	SETL $5,#a
 	SET $4,$0
 	XOR $255,$4,$5
 	NEGU $2,0,$5
@@ -115,9 +115,10 @@ print_integer	IS @
 	SR $0,$0,32
 	SET $7,$0
 	PUSHJ $6,print_integer
+	PUT rJ,$1
 	SUBU $0,$253,20
 	LDT $0,$0,0
-	SETL $3,#a
+	SETL $5,#a
 	SET $4,$0
 	NEGU $2,0,$5
 	CSN $5,$5,$2
@@ -136,10 +137,10 @@ print_integer	IS @
 	SR $0,$0,56
 	SET $7,$0
 	PUSHJ $6,print_char
+	PUT rJ,$1
 L:10	IS @
 	LDO $253,$254,16
 	ADDU $254,$254,24
-	PUT rJ,$1
 	POP 0,0
 	.section	.rodata
 	.p2align 2
@@ -179,6 +180,7 @@ print	IS @
 	STTU $1,$0,0
 	GETA $7,LC:0
 	PUSHJ $6,print_string
+	PUT rJ,$3
 	SUBU $0,$253,24
 	SUBU $1,$253,24
 	LDT $1,$1,0
@@ -188,8 +190,10 @@ print	IS @
 	LDT $0,$0,0
 	SET $7,$0
 	PUSHJ $6,print_integer
+	PUT rJ,$3
 	SETL $7,#a
 	PUSHJ $6,print_char
+	PUT rJ,$3
 	SUBU $0,$253,12
 	SETL $1,#1
 	STTU $1,$0,0
@@ -197,10 +201,12 @@ print	IS @
 L:13	IS @
 	SETL $7,#9
 	PUSHJ $6,print_char
+	PUT rJ,$3
 	SUBU $0,$253,12
 	LDT $0,$0,0
 	SET $7,$0
 	PUSHJ $6,print_integer
+	PUT rJ,$3
 	SUBU $0,$253,12
 	SUBU $1,$253,12
 	LDT $1,$1,0
@@ -220,10 +226,12 @@ L:12	IS @
 L:19	IS @
 	GETA $7,LC:1
 	PUSHJ $6,print_string
+	PUT rJ,$3
 	SUBU $0,$253,12
 	LDT $0,$0,0
 	SET $7,$0
 	PUSHJ $6,print_integer
+	PUT rJ,$3
 	SUBU $0,$253,16
 	SETL $1,#1
 	STTU $1,$0,0
@@ -244,10 +252,12 @@ L:18	IS @
 	BNZ $0,L:16
 	GETA $7,LC:2
 	PUSHJ $6,print_string
+	PUT rJ,$3
 	JMP L:17
 L:16	IS @
 	GETA $7,LC:3
 	PUSHJ $6,print_string
+	PUT rJ,$3
 L:17	IS @
 	SUBU $0,$253,16
 	SUBU $1,$253,16
@@ -275,11 +285,11 @@ L:14	IS @
 	BNP $0,L:19
 	SETL $7,#a
 	PUSHJ $6,print_char
+	PUT rJ,$3
 	SUBU $0,$253,24
 	LDT $0,$0,0
 	LDO $253,$254,24
 	ADDU $254,$254,32
-	PUT rJ,$3
 	POP 1,0
 	.p2align 2
 	LOC @+(4-@)&3
@@ -419,6 +429,7 @@ L:33	IS @
 	SET $9,$1
 	SET $8,$0
 	PUSHJ $7,place
+	PUT rJ,$4
 	SET $0,$7
 	SLU $0,$0,32
 	SR $0,$0,32
@@ -450,6 +461,7 @@ L:33	IS @
 	SET $9,$1
 	SET $8,$0
 	PUSHJ $7,print
+	PUT rJ,$4
 	STTU $7,$2,0
 	JMP L:31
 L:32	IS @
@@ -474,6 +486,7 @@ L:32	IS @
 	SET $9,$1
 	SET $8,$0
 	PUSHJ $7,queen
+	PUT rJ,$4
 	STTU $7,$3,0
 L:31	IS @
 	SUBU $0,$253,12
@@ -492,7 +505,6 @@ L:30	IS @
 	LDT $0,$0,0
 	LDO $253,$254,32
 	ADDU $254,$254,40
-	PUT rJ,$4
 	POP 1,0
 	.section	.rodata
 	.p2align 2
@@ -531,27 +543,30 @@ main	IS @
 	SET $7,$1
 	SETL $6,#1
 	PUSHJ $5,queen
+	PUT rJ,$0
 	STTU $5,$3,0
 	GETA $6,LC:4
 	PUSHJ $5,print_string
+	PUT rJ,$0
 	SUBU $1,$253,16
 	LDT $1,$1,0
 	SET $6,$1
 	PUSHJ $5,print_integer
+	PUT rJ,$0
 	GETA $6,LC:5
 	PUSHJ $5,print_string
+	PUT rJ,$0
 	SETL $0,0
 	LDO $253,$254,40
 	ADDU $254,$254,48
-	PUT rJ,$0
 	POP 1,0
 	.data ! mmixal:= 8H LOC 9B
-Main    IS	@
-    SETL $0,64
-    PUT 20,$0
-    SETL $0,64
-    PUT 19,$0
-    SETH $254,#4000
-    SETH $253,#4000
-    SETH $252,#3000
-    PUSHJ 2,main
+Main	IS @
+	SETL $0,64
+	PUT 20,$0
+	SETL $0,64
+	PUT 19,$0
+	SETH $254,#4000
+	SETH $253,#4000
+	SETH $252,#3000
+	PUSHJ 2,main

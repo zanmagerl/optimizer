@@ -24,4 +24,26 @@ public class RawInstruction {
             instruction = new Instruction(rawInstruction);
         }
     }
+
+    public String getRawInstruction(){
+        if (this.isPseudoInstruction) {
+            return this.rawInstruction;
+        }
+        String result = "";
+        if (this.instruction.getLabel() != null) {
+            result += this.instruction.label;
+        }
+
+        result += "\t" + this.instruction.getOpCode() + " " + this.instruction.getFirstOperand();
+
+        if (this.instruction.getSecondOperand() != null) {
+            result += "," + this.instruction.getSecondOperand();
+        }
+
+        if (this.instruction.getThirdOperand() != null) {
+            result += "," + this.instruction.getThirdOperand();
+        }
+
+        return result;
+    }
 }

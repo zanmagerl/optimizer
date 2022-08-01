@@ -14,7 +14,7 @@ public class PutPattern implements Pattern {
     @Override
     public List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
-        RawInstruction removedPutInstruction = null;
+        RawInstruction lastFoundPutInstruction = null;
         for (RawInstruction rawInstruction : rawInstructions) {
             if (rawInstruction.isPseudoInstruction()) {
                 processedInstructions.add(rawInstruction);
@@ -23,14 +23,15 @@ public class PutPattern implements Pattern {
             Instruction instruction = rawInstruction.getInstruction();
             if (instruction.getOpCode() == InstructionOpCode.PUT) {
                 if (instruction.getFirstOperand().equals("rJ")) {
-                    removedPutInstruction = rawInstruction;
-                    log.info("Remove PUT instruction {}", rawInstruction);
-                    continue;
+                    if (lastFoundPutInstruction != null) {
+                        log.info("Remove PUT instruction {}", lastFoundPutInstruction);
+                        processedInstructions.remove(lastFoundPutInstruction);
+                    }
+                    lastFoundPutInstruction = rawInstruction;
                 }
             }
-            if (removedPutInstruction != null && instruction.getOpCode() == InstructionOpCode.POP) {
-                processedInstructions.add(removedPutInstruction);
-                removedPutInstruction = null;
+            if (lastFoundPutInstruction != null && instruction.getOpCode() == InstructionOpCode.POP) {
+                lastFoundPutInstruction = null;
             }
             processedInstructions.add(rawInstruction);
         }

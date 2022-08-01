@@ -6,9 +6,7 @@ import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
@@ -40,9 +38,9 @@ public class UnusedRegisterPattern implements Pattern {
             }
             Instruction instruction = rawInstructions.get(i).getInstruction();
             if ((instruction.getOpCode() == SET || instruction.getOpCode() == SETL) && !instruction.getSecondOperand().contains("$")) {
-                List<RawInstruction> readInstructions = readBeforeWrittenAgain(rawInstructions, i + 1, instruction.getFirstOperand());
+                List<RawInstruction> readInstructions = readBeforeWrittenAgain(rawInstructions, i + 1, instruction.getFirstOperand(), new HashMap<>());
                 if (readInstructions.size() == 1 && readInstructions.get(0).getInstruction().getOpCode() == SET) {
-                    if (readBeforeWrittenAgain(rawInstructions, rawInstructions.indexOf(readInstructions.get(0)), readInstructions.get(0).getInstruction().getFirstOperand()).isEmpty()) {
+                    if (readBeforeWrittenAgain(rawInstructions, rawInstructions.indexOf(readInstructions.get(0)), readInstructions.get(0).getInstruction().getFirstOperand(), new HashMap<>()).isEmpty()) {
                         log.info("Remove unused register: {}, {}", rawInstructions.get(i), readInstructions.get(0));
 
                         rawInstructions.get(i).getInstruction().setFirstOperand(readInstructions.get(0).getInstruction().getFirstOperand());
@@ -58,7 +56,11 @@ public class UnusedRegisterPattern implements Pattern {
         return processedInstructions;
     }
 
-    private List<RawInstruction> readBeforeWrittenAgain(List<RawInstruction> rawInstructions, int index, String register) {
+    private List<RawInstruction> readBeforeWrittenAgain(List<RawInstruction> rawInstructions, int index, String register, HashMap<String, Boolean> visitedLabels) {
+        if (visitedLabels.get(rawInstructions.get(index).getInstruction().getLabel()) != null) {
+            return Collections.emptyList();
+        }
+        visitedLabels.put(rawInstructions.get(index).getInstruction().getLabel(), true);
         List<RawInstruction> readInstructions = new ArrayList<>();
         for (int i = index; i < rawInstructions.size(); i++) {
             if (rawInstructions.get(i).isPseudoInstruction()) {
@@ -75,7 +77,8 @@ public class UnusedRegisterPattern implements Pattern {
                                 }
                                 return false;
                             }).findFirst().get()),
-                            register));
+                            register,
+                            visitedLabels));
                 }
                 if (!InstructionOpCode.isStoreInstruction((InstructionOpCode) instruction.getOpCode()) && Objects.equals(register, instruction.getSecondOperand()) || Objects.equals(register, instruction.getThirdOperand())) {
                     readInstructions.add(rawInstructions.get(i));
