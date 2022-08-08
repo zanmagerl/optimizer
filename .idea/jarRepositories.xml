@@ -16,5 +16,10 @@
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="cloudsmith-outfit7-backend" />
+      <option name="name" value="cloudsmith-outfit7-backend" />
+      <option name="url" value="https://dl.cloudsmith.io/basic/outfit7/backend/maven/" />
+    </remote-repository>
   </component>
 </project>

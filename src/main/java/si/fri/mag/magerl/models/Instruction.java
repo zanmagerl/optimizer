@@ -1,16 +1,16 @@
 package si.fri.mag.magerl.models;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.models.opcode.OpCode;
 import si.fri.mag.magerl.models.opcode.PseudoOpCode;
+import si.fri.mag.magerl.utils.RegisterUtil;
+import si.fri.mag.magerl.utils.RoutineUtil;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
+
+import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
 @Slf4j
 @Data
@@ -61,7 +61,81 @@ public class Instruction {
         }
     }
 
-    private boolean hasLabel(List<String> parts) {
+    private static boolean hasLabel(List<String> parts) {
         return InstructionOpCode.from(parts.get(0)).isEmpty() && PseudoOpCode.from(parts.get(0)).isEmpty();
+    }
+
+    public boolean isWrittenToRegister(String register) {
+        if (InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) this.opCode)) {
+            return false;
+        }
+        return Objects.equals(this.firstOperand, register);
+    }
+
+    public boolean isReadFromRegister(String register) {
+        if (InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) this.opCode)) {
+            if (Objects.equals(this.firstOperand, register) || Objects.equals(this.secondOperand, register) || Objects.equals(this.thirdOperand, register)) {
+                return true;
+            }
+        }
+        return Objects.equals(this.secondOperand, register) || Objects.equals(this.thirdOperand, register);
+    }
+
+    public List<String> getLocalRegisters() {
+        List<String> registers = new ArrayList<>();
+        if (RegisterUtil.isLocalRegister(this.firstOperand)) {
+            registers.add(this.firstOperand);
+        }
+        if (RegisterUtil.isLocalRegister(this.secondOperand)) {
+            registers.add(this.secondOperand);
+        }
+        if (RegisterUtil.isLocalRegister(this.thirdOperand)) {
+            registers.add(this.thirdOperand);
+        }
+        return registers;
+    }
+
+    public boolean usesRegister(String register) {
+        return Objects.equals(this.firstOperand, register) || Objects.equals(this.secondOperand, register) || Objects.equals(this.thirdOperand, register);
+    }
+
+    public void changeOperand(String register, String replacement) {
+        if (Objects.equals(this.firstOperand, register)) {
+            this.firstOperand = replacement;
+        }
+        if (Objects.equals(this.secondOperand, register)) {
+            this.secondOperand = replacement;
+        }
+        if (Objects.equals(this.thirdOperand, register)) {
+            this.thirdOperand = replacement;
+        }
+    }
+
+    public boolean containsGlobalRegisters() {
+        return RegisterUtil.isGlobalRegister(this.firstOperand) || RegisterUtil.isGlobalRegister(this.secondOperand) || RegisterUtil.isGlobalRegister(this.thirdOperand);
+    }
+
+    public boolean isSubroutineCall() {
+        return this.opCode == PUSHJ || this.opCode == PUSHGO;
+    }
+
+    public boolean isTwinSwapInstruction(Instruction instruction) {
+        return  (this.getOpCode() == SET && instruction.getOpCode() == SET)
+                && Objects.equals(this.firstOperand, instruction.getSecondOperand())
+                && Objects.equals(this.secondOperand, instruction.getFirstOperand());
+    }
+
+    public boolean hasLabel(){
+        return this.getLabel() != null;
+    }
+
+    public String extractBranchLabel() {
+        if (!InstructionOpCode.isBranchOrJumpInstructionOpCode((InstructionOpCode) this.opCode)) {
+            throw new RuntimeException("Expected branch or jump instruction but this was not the case: " + this);
+        }
+        if (this.opCode == JMP) {
+            return this.firstOperand;
+        }
+        return this.secondOperand;
     }
 }

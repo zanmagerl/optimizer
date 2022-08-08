@@ -35,9 +35,7 @@ print_char	IS @
 	SUBU $254,$254,16
 	STOU $253,$254,8
 	ADDU $253,$254,16
-	SET $2,$0
 	GETA $1,Buffer
-	SET $0,$2
 	STB $0,$1,0
 	SET $255,$1
 	TRAP 0,Fputs,StdOut
@@ -100,8 +98,9 @@ print_integer	IS @
 	BNP $0,L:10
 	SUBU $0,$253,20
 	LDT $0,$0,0
-	SETL $5,#a
+	SETL $3,#a
 	SET $4,$0
+	SET $5,$3
 	XOR $255,$4,$5
 	NEGU $2,0,$5
 	CSN $5,$5,$2
@@ -118,8 +117,9 @@ print_integer	IS @
 	PUT rJ,$1
 	SUBU $0,$253,20
 	LDT $0,$0,0
-	SETL $5,#a
+	SETL $3,#a
 	SET $4,$0
+	SET $5,$3
 	NEGU $2,0,$5
 	CSN $5,$5,$2
 	NEGU $255,0,$4
@@ -169,14 +169,12 @@ print	IS @
 	ADDU $253,$254,32
 	GET $3,rJ
 	SET $5,$0
-	SET $4,$1
 	SUBU $0,$253,32
 	STOU $2,$0,0
 	SUBU $0,$253,20
-	SET $1,$5
-	STTU $1,$0,0
+	SET $7,$5
+	STTU $7,$0,0
 	SUBU $0,$253,24
-	SET $1,$4
 	STTU $1,$0,0
 	GETA $7,LC:0
 	PUSHJ $6,print_string
@@ -299,14 +297,12 @@ place	IS @
 	STOU $253,$254,24
 	ADDU $253,$254,32
 	SET $4,$0
-	SET $3,$1
 	SUBU $0,$253,32
 	STOU $2,$0,0
 	SUBU $0,$253,20
-	SET $1,$4
-	STTU $1,$0,0
+	SET $2,$4
+	STTU $2,$0,0
 	SUBU $0,$253,24
-	SET $1,$3
 	STTU $1,$0,0
 	SUBU $0,$253,12
 	SETL $1,#1
@@ -357,9 +353,7 @@ L:25	IS @
 	SR $0,$0,32
 	BNN $0,L:26
 	NEGU $0,0,$1
-	SET $1,$0
 L:26	IS @
-	SET $0,$1
 	SLU $1,$2,32
 	SR $1,$1,32
 	SLU $0,$0,32
@@ -401,14 +395,12 @@ queen	IS @
 	ADDU $253,$254,40
 	GET $4,rJ
 	SET $6,$0
-	SET $5,$1
 	SUBU $0,$253,40
 	STOU $3,$0,0
 	SUBU $0,$253,20
-	SET $1,$6
-	STTU $1,$0,0
+	SET $9,$6
+	STTU $9,$0,0
 	SUBU $0,$253,24
-	SET $1,$5
 	STTU $1,$0,0
 	SUBU $0,$253,28
 	SET $1,$2

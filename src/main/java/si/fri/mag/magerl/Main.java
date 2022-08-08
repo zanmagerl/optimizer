@@ -31,7 +31,7 @@ public class Main {
         try {
             List<RawInstruction> rawInstructions = FileUtil.readProgram(new FileInputStream(file));
             log.info("Number of instruction: {}", rawInstructions.size());
-            Pipeline pipeline = new Pipeline();
+            Pipeline pipeline = new Pipeline(rawInstructions);
             List<RawInstruction> optimizedCode = pipeline.run(rawInstructions);
             log.info("Number of instructions in the optimized code: {}", optimizedCode.size());
             FileUtil.writeProgram(optimizedCode.stream().map(RawInstruction::getRawInstruction).toList(), FileUtil.extendPathWithFile(FileUtil.getTargetDirectory(), "output.mms"));

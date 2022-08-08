@@ -28,7 +28,7 @@ public class CmpPattern implements Pattern {
             if (instruction.getOpCode() == CMP) {
                 if (Objects.equals(instruction.getFirstOperand(), instruction.getSecondOperand()) && Objects.equals(instruction.getThirdOperand(), "0")) {
                     Instruction branchInstruction = rawInstructions.get(i+1).getInstruction();
-                    if (branchInstruction != null && InstructionOpCode.isBranchInstruction((InstructionOpCode) branchInstruction.getOpCode()) && Objects.equals(instruction.getFirstOperand(), branchInstruction.getFirstOperand())) {
+                    if (branchInstruction != null && InstructionOpCode.isBranchInstructionOpCode((InstructionOpCode) branchInstruction.getOpCode()) && Objects.equals(instruction.getFirstOperand(), branchInstruction.getFirstOperand())) {
                         if (notReadBeforeWrittenAgain(rawInstructions, i+1, branchInstruction.getFirstOperand())){
                             log.info("Removing unneeded CMP instruction: {}, {}", rawInstructions.get(i), rawInstructions.get(i+1));
                             processedInstruction.add(rawInstructions.get(i+1));
@@ -52,7 +52,7 @@ public class CmpPattern implements Pattern {
             }
             Instruction instruction = rawInstructions.get(i).getInstruction();
             if (instruction.getOpCode() instanceof InstructionOpCode) {
-                if (InstructionOpCode.isBranchInstruction((InstructionOpCode) instruction.getOpCode())) {
+                if (InstructionOpCode.isBranchInstructionOpCode((InstructionOpCode) instruction.getOpCode())) {
                     notRead = notReadBeforeWrittenAgain(
                             rawInstructions,
                             rawInstructions.indexOf(rawInstructions.stream().filter(rawInstruction -> {
@@ -63,7 +63,7 @@ public class CmpPattern implements Pattern {
                             }).findFirst().get()),
                             firstOperand);
                 }
-                if (!InstructionOpCode.isStoreInstruction((InstructionOpCode) instruction.getOpCode()) && Objects.equals(firstOperand, instruction.getSecondOperand()) || Objects.equals(firstOperand, instruction.getThirdOperand())) {
+                if (!InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) instruction.getOpCode()) && Objects.equals(firstOperand, instruction.getSecondOperand()) || Objects.equals(firstOperand, instruction.getThirdOperand())) {
                     notRead = false;
                 }
             }

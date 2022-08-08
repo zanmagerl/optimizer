@@ -2,7 +2,6 @@ package si.fri.mag.magerl.models.opcode;
 
 import si.fri.mag.magerl.models.Instruction;
 
-import java.beans.IntrospectionException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -149,15 +148,23 @@ public enum InstructionOpCode implements OpCode {
         return Arrays.stream(InstructionOpCode.values()).filter(o -> o.name().equals(opCode)).findFirst();
     }
 
-    public static boolean isSignedLoadInstruction(InstructionOpCode instructionOpCode) {
+    public static boolean isSignedLoadInstructionOpCode(InstructionOpCode instructionOpCode) {
         return instructionOpCode == LDB || instructionOpCode == LDW || instructionOpCode == LDT || instructionOpCode == LDO;
     }
 
-    public static boolean isBranchInstruction(InstructionOpCode instructionOpCode) {
+    public static boolean isBranchInstructionOpCode(InstructionOpCode instructionOpCode) {
         return BRANCH_INSTRUCTIONS.contains(instructionOpCode);
     }
 
-    public static boolean isStoreInstruction(InstructionOpCode instructionOpCode) {
+    public static boolean isStoreInstructionOpCode(InstructionOpCode instructionOpCode) {
         return STORE_INSTRUCTIONS.contains(instructionOpCode);
+    }
+
+    public static boolean isBranchOrJumpInstructionOpCode(InstructionOpCode instructionOpCode) {
+        return BRANCH_INSTRUCTIONS.contains(instructionOpCode) || instructionOpCode == JMP;
+    }
+
+    public static boolean isSubroutineInstructionOpCode(InstructionOpCode instructionOpCode) {
+        return instructionOpCode == PUSHJ || instructionOpCode == PUSHGO;
     }
 }

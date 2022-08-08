@@ -2,6 +2,7 @@ package si.fri.mag.magerl.phases.impl;
 
 import si.fri.mag.magerl.models.Instruction;
 import si.fri.mag.magerl.models.RawInstruction;
+import si.fri.mag.magerl.utils.RoutineUtil;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.models.opcode.OpCode;
 import si.fri.mag.magerl.phases.Phase;
@@ -28,6 +29,7 @@ public class SubroutineLabelingPhaseImpl implements Phase {
             }
             if (subroutineNames.contains(rawInstruction.getInstruction().getLabel())) {
                 currentRoutine = rawInstruction.getInstruction().getLabel();
+                RoutineUtil.routineMapping.put(currentRoutine, rawInstruction);
             }
             rawInstruction.setSubroutine(currentRoutine);
             // After POP instruction we go out of the subroutine

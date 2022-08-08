@@ -1,10 +1,7 @@
 package si.fri.mag.magerl.phases;
 
 import si.fri.mag.magerl.models.RawInstruction;
-import si.fri.mag.magerl.phases.impl.CleaningPhaseImpl;
-import si.fri.mag.magerl.phases.impl.PatternPhaseImpl;
-import si.fri.mag.magerl.phases.impl.StandardLibraryPhaseImpl;
-import si.fri.mag.magerl.phases.impl.SubroutineLabelingPhaseImpl;
+import si.fri.mag.magerl.phases.impl.*;
 
 import java.util.List;
 
@@ -14,6 +11,8 @@ public class Pipeline {
             new StandardLibraryPhaseImpl(),
             new CleaningPhaseImpl(),
             new SubroutineLabelingPhaseImpl(),
+            new GraphConstructionPhase(),
+            new RegisterUsagesPhaseImpl(),
             new PatternPhaseImpl()
     );
 
@@ -22,5 +21,9 @@ public class Pipeline {
             rawInstructions = phase.visit(rawInstructions);
         }
         return rawInstructions;
+    }
+
+    public Pipeline(List<RawInstruction> rawInstructions) {
+
     }
 }
