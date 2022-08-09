@@ -13,8 +13,9 @@ public class PatternPhaseImpl implements Phase {
     private final List<Pattern> patterns = List.of(
             new PointlessInstructionPattern(),
             new ShiftPattern(),
-            //new PutPattern(),
+            new PutPattern(),
             new CmpPattern(),
+            new SwapPattern(),
             new UnusedRegisterPattern()
     );
 

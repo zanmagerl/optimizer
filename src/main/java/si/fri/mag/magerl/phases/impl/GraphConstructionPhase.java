@@ -53,7 +53,7 @@ public class GraphConstructionPhase implements Phase {
 
         for (String routine : RoutineUtil.routineMapping.keySet()) {
             // main is called from special initialized code Main
-            if (routine.equals("main")) continue;
+            //if (routine.equals("main")) continue;
             RawInstruction firstRoutineInstruction = RoutineUtil.routineMapping.get(routine);
             int i = rawInstructions.indexOf(firstRoutineInstruction);
             for (; rawInstructions.get(i).getInstruction().getOpCode() != POP; i++) { }
@@ -71,21 +71,6 @@ public class GraphConstructionPhase implements Phase {
                 instructionAfterCall.addPredecessor(rawInstructions.get(i));
             }
         }
-
-        RawInstruction firstRoutineInstruction = RoutineUtil.routineMapping.get("print_char");
-        int i;
-        for (i = rawInstructions.indexOf(firstRoutineInstruction); rawInstructions.get(i).getInstruction().getOpCode() != POP; i++) {
-            log.error("{}: {}, {}",
-                    rawInstructions.get(i).getRawInstruction(),
-                    rawInstructions.get(i).getPossiblePrecedingInstruction().stream().map(RawInstruction::getRawInstruction).toList(),
-                    rawInstructions.get(i).getPossibleNextInstructions().stream().map(RawInstruction::getRawInstruction).toList()
-            );
-        }
-        log.error("{}: {}, {}",
-                rawInstructions.get(i).getRawInstruction(),
-                rawInstructions.get(i).getPossiblePrecedingInstruction().stream().map(RawInstruction::getRawInstruction).toList(),
-                rawInstructions.get(i).getPossibleNextInstructions().stream().map(RawInstruction::getRawInstruction).toList()
-        );
         return rawInstructions;
     }
 
