@@ -1,11 +1,13 @@
 package si.fri.mag.magerl.models;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.PUSHJ;
@@ -21,12 +23,22 @@ public class RawInstruction implements Comparable{
     boolean inLoop;
     boolean isPseudoInstruction;
     String subroutine;
-    List<String> unusedRegisters = new ArrayList<>();
+    ArrayList<String> unusedRegisters = new ArrayList<>();
+
+    public void addUnusedRegisters(ArrayList<String> unusedRegisters) {
+        if (this.unusedRegisters.isEmpty()) {
+            this.unusedRegisters = unusedRegisters;
+        } else {
+          this.unusedRegisters.retainAll(new ArrayList<>(unusedRegisters));
+        }
+    }
 
     // This is for graph purposes
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     List<RawInstruction> possibleNextInstructions = new ArrayList<>();
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     List<RawInstruction> possiblePrecedingInstruction = new ArrayList<>();
     public void addNextInstruction(RawInstruction rawInstruction) {
         this.possibleNextInstructions.add(rawInstruction);

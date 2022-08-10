@@ -17,42 +17,73 @@ public class RegisterUsagesPhaseImpl implements Phase {
 
     @Override
     public List<RawInstruction> visit(List<RawInstruction> rawInstructions) {
+        memo = new HashMap<>();
         for (String routine : RoutineUtil.routineMapping.keySet()) {
             RegisterUtil.availableRegisters.put(routine, new HashMap<>());
             List<RawInstruction> routineSourceCode = getRoutineSourceCode(rawInstructions, routine);
             List<RawInstruction> reversedElements = routineSourceCode.subList(0, routineSourceCode.size());
             Collections.reverse(reversedElements);
             Set<String> currentlyUnusedRegisters = new HashSet<>(IntStream.range(0, highestLocalRegister(routineSourceCode) + 1).mapToObj(number -> "$" + number).toList());
-            for (RawInstruction rawInstruction : reversedElements) {
-                Instruction instruction = rawInstruction.getInstruction();
-                /**
-                 * Here we now go and assume first that all registers and free and then decide depending if it is a write or read instruction
-                 */
-                List<String> localRegisters = rawInstruction.getInstruction().getLocalRegisters();
-                for (String register : localRegisters) {
-                    if (instruction.isReadFromRegister(register)) {
-                        // We remove it from unused registers since we need its content
-                        currentlyUnusedRegisters.remove(register);
-                    } else if (instruction.isWrittenToRegister(register)) {
-                        // We add it to the unused registers since we overwrite its content
-                        currentlyUnusedRegisters.add(register);
-                    }
-                }
-
-                if (instruction.isSubroutineCall()) {
-                    log.debug("Before {}: {}", instruction, currentlyUnusedRegisters);
-                    int highestLocalRegister = highestLocalRegister(routineSourceCode);
-                    int pushX = RegisterUtil.extractRegister(instruction.getFirstOperand());
-                    currentlyUnusedRegisters.removeAll(IntStream.range(pushX+1, highestLocalRegister+1).mapToObj(number -> "$" + number).toList());
-                    log.debug("After {}: {}", instruction, currentlyUnusedRegisters);
-
-                }
-
-                rawInstruction.setUnusedRegisters(new ArrayList<>(currentlyUnusedRegisters).stream().sorted().toList());
-            }
+            RawInstruction iterInstruction = reversedElements.get(0);
+            findUnusedRegisters(routine, iterInstruction, currentlyUnusedRegisters,  highestLocalRegister(routineSourceCode) + 1, null);
         }
+
         return rawInstructions;
     }
+
+    Map<RawInstruction, List<RawInstruction>> memo = new HashMap<>();
+
+    private void findUnusedRegisters(String routine, RawInstruction iterInstruction, Set<String> currentlyUnusedRegisters, int highestLocalRegister, RawInstruction fromInstruction) {
+        // To avoid loops
+        if(memo.containsKey(iterInstruction)) {
+            if (memo.get(iterInstruction).contains(fromInstruction)) {
+                return;
+            }
+        }
+
+        if (!Objects.equals(routine, iterInstruction.getSubroutine())) {
+            return;
+        }
+        if (Objects.equals(RoutineUtil.routineMapping.get(routine).getId(), iterInstruction.getId())) {
+            return;
+        }
+
+        /**
+         * Here we now go and assume first that all registers and free and then decide depending if it is a write or read instruction
+         */
+        Instruction instruction = iterInstruction.getInstruction();
+        List<String> localRegisters = iterInstruction.getInstruction().getLocalRegisters();
+        for (String register : localRegisters) {
+            if (instruction.isReadFromRegister(register)) {
+                // We remove it from unused registers since we need its content
+                currentlyUnusedRegisters.remove(register);
+            } else if (instruction.isWrittenToRegister(register)) {
+                // We add it to the unused registers since we overwrite its content
+                currentlyUnusedRegisters.add(register);
+            }
+        }
+
+        if (instruction.isSubroutineCall()) {
+            log.debug("Before {}: {}", instruction, currentlyUnusedRegisters);
+            int pushX = RegisterUtil.extractRegister(instruction.getFirstOperand());
+            currentlyUnusedRegisters.removeAll(IntStream.range(pushX+1, highestLocalRegister+1).mapToObj(number -> "$" + number).toList());
+            log.debug("After {}: {}", instruction, currentlyUnusedRegisters);
+
+        }
+        iterInstruction.addUnusedRegisters(new ArrayList<>(new ArrayList<>(currentlyUnusedRegisters).stream().sorted().toList()));
+
+        if (memo.containsKey(iterInstruction)) {
+            memo.get(iterInstruction).add(fromInstruction);
+        } else if (fromInstruction != null){
+            memo.put(iterInstruction, new ArrayList<>(List.of(fromInstruction)));
+        }
+
+        for (RawInstruction previousInstruction : iterInstruction.getPossiblePrecedingInstruction()) {
+            findUnusedRegisters(routine, previousInstruction, new HashSet<>(currentlyUnusedRegisters), highestLocalRegister, iterInstruction);
+        }
+    }
+
+
 
     private List<RawInstruction> getRoutineSourceCode(List<RawInstruction> rawInstructions, String routine) {
         List<RawInstruction> routineSourceCode = new ArrayList<>();

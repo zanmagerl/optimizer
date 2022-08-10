@@ -9,7 +9,7 @@ import java.util.List;
 @Slf4j
 public class Pipeline {
 
-    private static final Integer NUMBER_OF_RUNS = 2;
+    private static final Integer NUMBER_OF_RUNS = 1;
 
     private final List<Phase> phases = List.of(
             new StandardLibraryPhaseImpl(),

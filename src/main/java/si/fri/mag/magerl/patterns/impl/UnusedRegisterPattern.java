@@ -19,6 +19,7 @@ public class UnusedRegisterPattern implements Pattern {
     public List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>(rawInstructions);
         processedInstructions = removeSetAfterArithmeticOperation(processedInstructions);
+        processedInstructions = removeUnusedSetInstructions(processedInstructions);
         return processedInstructions;
     }
 
@@ -64,13 +65,33 @@ public class UnusedRegisterPattern implements Pattern {
                 }
             }
 
+            if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) firstInstruction.getOpCode()) && secondInstruction.getOpCode() == SET) {
+                if (Objects.equals(firstInstruction.getFirstOperand(), secondInstruction.getSecondOperand()) && RegisterUtil.isUnusedAfterInstruction(firstInstruction.getFirstOperand(), rawInstructions.get(i+1))) {
+                    log.info("Combining instructions {} and {}", rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i+1).getRawInstruction());
+                    rawInstructions.get(i).setInstruction(firstInstruction.toBuilder()
+                            .firstOperand(secondInstruction.getFirstOperand())
+                            .build());
+                    processedInstructions.add(rawInstructions.get(i));
+                    i++;
+                    continue;
+                }
+            }
+
             processedInstructions.add(rawInstructions.get(i));
         }
         processedInstructions.add(rawInstructions.get(rawInstructions.size()-1));
         return processedInstructions;
     }
 
-
+    /**
+     * Removes stuff like that:
+     * SET $1,#a
+     * ...
+     * SET $3,$1
+     * ...
+     * ...
+     * SET $1,#sth
+     */
     private List<RawInstruction> removeUnusedSetInstructions(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
 
@@ -82,11 +103,10 @@ public class UnusedRegisterPattern implements Pattern {
             Instruction instruction = rawInstructions.get(i).getInstruction();
             if (instruction.getOpCode() == SET || instruction.getOpCode() == SETL) {
                 String potentiallyUnusedRegister = instruction.getFirstOperand();
-
-                if (rawInstructions.get(i+2).getUnusedRegisters().contains(potentiallyUnusedRegister)) {
-
-                }
+                log.info("Potentially unused register in routine {} {}, {}", rawInstructions.get(i).getSubroutine(), rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i+1).getUnusedRegisters());
+                // Find first instruction that uses secondOperand, if after that is register unused, you can substitute both with one
             }
+            processedInstructions.add(rawInstructions.get(i));
         }
 
         return processedInstructions;

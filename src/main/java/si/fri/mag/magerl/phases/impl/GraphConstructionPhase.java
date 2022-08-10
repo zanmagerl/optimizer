@@ -75,7 +75,7 @@ public class GraphConstructionPhase implements Phase {
             for (RawInstruction instructionAfterCall : instructionsAfterCall) {
                 rawInstructions.get(i).addNextInstruction(instructionAfterCall);
                 // Instruction after subroutine call is always after POP and not after PUSHJ/PUSHGO
-                instructionAfterCall.getPossiblePrecedingInstruction().clear();
+                //instructionAfterCall.getPossiblePrecedingInstruction().clear();
                 instructionAfterCall.addPredecessor(rawInstructions.get(i));
             }
         }

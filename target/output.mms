@@ -62,8 +62,7 @@ L:7	IS @
 	SUBU $1,$253,24
 	LDO $1,$1,0
 	ADDU $0,$1,$0
-	LDB $0,$0,0
-	SET $4,$0
+	LDB $4,$0,0
 	PUSHJ $3,print_char
 	PUT rJ,$2
 	SUBU $0,$253,12
@@ -99,8 +98,8 @@ print_integer	IS @
 	SUBU $0,$253,20
 	LDT $0,$0,0
 	SETL $3,#a
-	SET $4,$0
 	SET $5,$3
+	SET $4,$0
 	XOR $255,$4,$5
 	NEG $2,$5
 	CSN $5,$5,$2
@@ -117,8 +116,8 @@ print_integer	IS @
 	SUBU $0,$253,20
 	LDT $0,$0,0
 	SETL $3,#a
-	SET $4,$0
 	SET $5,$3
+	SET $4,$0
 	NEG $2,$5
 	CSN $5,$5,$2
 	NEG $255,$4
@@ -183,8 +182,7 @@ print	IS @
 	ADDU $1,$1,1
 	STTU $1,$0,0
 	SUBU $0,$253,24
-	LDT $0,$0,0
-	SET $7,$0
+	LDT $7,$0,0
 	PUSHJ $6,print_integer
 	SETL $7,#a
 	PUSHJ $6,print_char
@@ -196,8 +194,7 @@ L:13	IS @
 	SETL $7,#9
 	PUSHJ $6,print_char
 	SUBU $0,$253,12
-	LDT $0,$0,0
-	SET $7,$0
+	LDT $7,$0,0
 	PUSHJ $6,print_integer
 	SUBU $0,$253,12
 	SUBU $1,$253,12
@@ -219,8 +216,7 @@ L:19	IS @
 	GETA $7,LC:1
 	PUSHJ $6,print_string
 	SUBU $0,$253,12
-	LDT $0,$0,0
-	SET $7,$0
+	LDT $7,$0,0
 	PUSHJ $6,print_integer
 	SUBU $0,$253,16
 	SETL $1,#1
@@ -236,6 +232,8 @@ L:18	IS @
 	LDT $0,$0,0
 	SUBU $1,$253,16
 	LDT $1,$1,0
+	SLU $0,$0,32
+	SR $0,$0,32
 	CMP $0,$1,$0
 	BNZ $0,L:16
 	GETA $7,LC:2
@@ -306,6 +304,8 @@ L:28	IS @
 	LDT $0,$0,0
 	SUBU $1,$253,24
 	LDT $1,$1,0
+	SLU $0,$0,32
+	SR $0,$0,32
 	CMP $0,$1,$0
 	BNZ $0,L:23
 	SETL $0,0
@@ -320,26 +320,22 @@ L:23	IS @
 	LDT $1,$0,0
 	SUBU $0,$253,24
 	LDT $0,$0,0
-	SUBU $0,$1,$0
-	SET $1,$0
+	SUBU $1,$1,$0
 	SLU $0,$1,32
 	SR $0,$0,32
 	BNN $0,L:25
-	NEG $0,$1
-	SET $1,$0
+	NEG $1,$1
 L:25	IS @
 	SET $2,$1
 	SUBU $1,$253,12
 	SUBU $0,$253,20
 	LDT $1,$1,0
 	LDT $0,$0,0
-	SUBU $0,$1,$0
-	SET $1,$0
+	SUBU $1,$1,$0
 	SLU $0,$1,32
 	SR $0,$0,32
 	BNN $0,L:26
-	NEG $0,$1
-	SET $1,$0
+	NEG $1,$1
 L:26	IS @
 	SET $0,$1
 	SLU $1,$2,32
@@ -359,12 +355,9 @@ L:27	IS @
 L:22	IS @
 	SUBU $0,$253,20
 	LDT $0,$0,0
-	SUBU $0,$0,1
-	SET $2,$0
+	SUBU $2,$0,1
 	SUBU $0,$253,12
-	LDT $0,$0,0
-	SLU $1,$0,32
-	SR $1,$1,32
+	LDT $1,$0,0
 	SLU $0,$2,32
 	SR $0,$0,32
 	CMP $0,$1,$0
@@ -400,14 +393,12 @@ queen	IS @
 L:33	IS @
 	SUBU $2,$253,40
 	SUBU $0,$253,12
-	LDT $0,$0,0
-	SLU $1,$0,32
-	SR $1,$1,32
+	LDT $1,$0,0
 	SUBU $0,$253,20
 	LDT $0,$0,0
 	LDO $10,$2,0
-	SET $9,$1
 	SET $8,$0
+	SET $9,$1
 	PUSHJ $7,place
 	PUT rJ,$4
 	SET $0,$7
@@ -432,14 +423,12 @@ L:33	IS @
 	SUBU $2,$253,28
 	SUBU $3,$253,40
 	SUBU $0,$253,28
-	LDT $0,$0,0
-	SLU $1,$0,32
-	SR $1,$1,32
+	LDT $1,$0,0
 	SUBU $0,$253,24
 	LDT $0,$0,0
 	LDO $10,$3,0
-	SET $9,$1
 	SET $8,$0
+	SET $9,$1
 	PUSHJ $7,print
 	PUT rJ,$4
 	STTU $7,$2,0
@@ -447,23 +436,18 @@ L:33	IS @
 L:32	IS @
 	SUBU $0,$253,20
 	LDT $0,$0,0
-	ADDU $0,$0,1
-	SET $6,$0
+	ADDU $6,$0,1
 	SUBU $3,$253,28
 	SUBU $5,$253,40
 	SUBU $0,$253,28
-	LDT $0,$0,0
-	SLU $2,$0,32
-	SR $2,$2,32
+	LDT $2,$0,0
 	SUBU $0,$253,24
-	LDT $0,$0,0
-	SLU $1,$0,32
-	SR $1,$1,32
+	LDT $1,$0,0
 	SLU $0,$6,32
 	SR $0,$0,32
 	LDO $11,$5,0
-	SET $10,$2
 	SET $9,$1
+	SET $10,$2
 	SET $8,$0
 	PUSHJ $7,queen
 	PUT rJ,$4
@@ -513,13 +497,11 @@ main	IS @
 	SUBU $3,$253,16
 	SUBU $4,$253,48
 	SUBU $1,$253,16
-	LDT $1,$1,0
-	SLU $2,$1,32
-	SR $2,$2,32
+	LDT $2,$1,0
 	SUBU $1,$253,12
 	LDT $1,$1,0
-	SET $9,$4
 	SET $8,$2
+	SET $9,$4
 	SET $7,$1
 	SETL $6,#1
 	PUSHJ $5,queen
@@ -527,8 +509,7 @@ main	IS @
 	GETA $6,LC:4
 	PUSHJ $5,print_string
 	SUBU $1,$253,16
-	LDT $1,$1,0
-	SET $6,$1
+	LDT $6,$1,0
 	PUSHJ $5,print_integer
 	GETA $6,LC:5
 	PUSHJ $5,print_string
