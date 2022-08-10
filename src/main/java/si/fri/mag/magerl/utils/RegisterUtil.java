@@ -33,4 +33,13 @@ public class RegisterUtil {
     public static Integer extractRegister(String register) {
         return Integer.parseInt(register.substring(1));
     }
+
+    public static boolean isUnusedAfterInstruction(String register, RawInstruction rawInstruction) {
+        for (RawInstruction nextInstruction : rawInstruction.getPossibleNextInstructions()) {
+            if (!nextInstruction.getUnusedRegisters().contains(register)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

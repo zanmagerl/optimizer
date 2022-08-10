@@ -1,6 +1,9 @@
 package si.fri.mag.magerl.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.models.opcode.OpCode;
@@ -14,6 +17,8 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
 @Slf4j
 @Data
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class Instruction {
 
     String label;

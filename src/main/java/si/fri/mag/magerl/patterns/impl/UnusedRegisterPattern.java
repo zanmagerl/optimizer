@@ -6,6 +6,7 @@ import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.models.opcode.PseudoOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
+import si.fri.mag.magerl.utils.RegisterUtil;
 
 import java.util.*;
 
@@ -17,7 +18,77 @@ public class UnusedRegisterPattern implements Pattern {
     @Override
     public List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>(rawInstructions);
-        processedInstructions = unusedSetInstruction(processedInstructions);
+        processedInstructions = removeSetAfterArithmeticOperation(processedInstructions);
+        return processedInstructions;
+    }
+
+    /***
+     * Let's resolve pattern:
+     * NEGU $0,0,$1
+     * SET $1,$0
+     * where $0 is not used anymore after that
+     */
+
+    private List<RawInstruction> removeSetAfterArithmeticOperation(List<RawInstruction> rawInstructions) {
+        List<RawInstruction> processedInstructions = new ArrayList<>();
+        for (int i = 0; i < rawInstructions.size()-1; i++) {
+            if (rawInstructions.get(i).isPseudoInstruction() || rawInstructions.get(i).getInstruction().getOpCode() instanceof PseudoOpCode) {
+                processedInstructions.add(rawInstructions.get(i));
+                continue;
+            }
+
+            Instruction firstInstruction = rawInstructions.get(i).getInstruction();
+            Instruction secondInstruction = rawInstructions.get(i+1).getInstruction();
+
+            if (firstInstruction.getOpCode() == NEG && secondInstruction.getOpCode() == SET) {
+                if (Objects.equals(firstInstruction.getFirstOperand(), secondInstruction.getSecondOperand()) && RegisterUtil.isUnusedAfterInstruction(firstInstruction.getFirstOperand(), rawInstructions.get(i+1))) {
+                    log.info("Combining instructions {} and {}", rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i+1).getRawInstruction());
+                    rawInstructions.get(i).setInstruction(firstInstruction.toBuilder()
+                            .firstOperand(secondInstruction.getFirstOperand())
+                            .build());
+                    processedInstructions.add(rawInstructions.get(i));
+                    i++;
+                    continue;
+                }
+            }
+
+            if (InstructionOpCode.isArithmeticInstructionOpCode((InstructionOpCode) firstInstruction.getOpCode()) && secondInstruction.getOpCode() == SET) {
+                if (Objects.equals(firstInstruction.getFirstOperand(), secondInstruction.getSecondOperand()) && RegisterUtil.isUnusedAfterInstruction(firstInstruction.getFirstOperand(), rawInstructions.get(i+1))) {
+                    log.info("Combining instructions {} and {}", rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i+1).getRawInstruction());
+                    rawInstructions.get(i).setInstruction(firstInstruction.toBuilder()
+                            .firstOperand(secondInstruction.getFirstOperand())
+                            .build());
+                    processedInstructions.add(rawInstructions.get(i));
+                    i++;
+                    continue;
+                }
+            }
+
+            processedInstructions.add(rawInstructions.get(i));
+        }
+        processedInstructions.add(rawInstructions.get(rawInstructions.size()-1));
+        return processedInstructions;
+    }
+
+
+    private List<RawInstruction> removeUnusedSetInstructions(List<RawInstruction> rawInstructions) {
+        List<RawInstruction> processedInstructions = new ArrayList<>();
+
+        for (int i = 0; i < rawInstructions.size(); i++) {
+            if (rawInstructions.get(i).isPseudoInstruction()) {
+                processedInstructions.add(rawInstructions.get(i));
+                continue;
+            }
+            Instruction instruction = rawInstructions.get(i).getInstruction();
+            if (instruction.getOpCode() == SET || instruction.getOpCode() == SETL) {
+                String potentiallyUnusedRegister = instruction.getFirstOperand();
+
+                if (rawInstructions.get(i+2).getUnusedRegisters().contains(potentiallyUnusedRegister)) {
+
+                }
+            }
+        }
+
         return processedInstructions;
     }
 

@@ -15,7 +15,7 @@ abs	IS @
 	BNN $0,L:2
 	SUBU $0,$253,12
 	LDT $0,$0,0
-	NEGU $0,0,$0
+	NEG $0,$0
 	JMP L:3
 L:2	IS @
 	SUBU $0,$253,12
@@ -102,12 +102,12 @@ print_integer	IS @
 	SET $4,$0
 	SET $5,$3
 	XOR $255,$4,$5
-	NEGU $2,0,$5
+	NEG $2,$5
 	CSN $5,$5,$2
-	NEGU $2,0,$4
+	NEG $2,$4
 	CSN $4,$4,$2
 	DIVU $2,$4,$5
-	NEGU $4,0,$2
+	NEG $4,$2
 	CSN $2,$255,$4
 	SET $0,$2
 	SLU $0,$0,32
@@ -119,13 +119,13 @@ print_integer	IS @
 	SETL $3,#a
 	SET $4,$0
 	SET $5,$3
-	NEGU $2,0,$5
+	NEG $2,$5
 	CSN $5,$5,$2
-	NEGU $255,0,$4
+	NEG $255,$4
 	CSN $4,$4,$255
 	DIVU $4,$4,$5
 	GET $2,:rR
-	NEGU $5,0,$2
+	NEG $5,$2
 	CSNN $2,$255,$5
 	SUBU $0,$253,9
 	STBU $2,$0,0
@@ -325,7 +325,7 @@ L:23	IS @
 	SLU $0,$1,32
 	SR $0,$0,32
 	BNN $0,L:25
-	NEGU $0,0,$1
+	NEG $0,$1
 	SET $1,$0
 L:25	IS @
 	SET $2,$1
@@ -338,7 +338,7 @@ L:25	IS @
 	SLU $0,$1,32
 	SR $0,$0,32
 	BNN $0,L:26
-	NEGU $0,0,$1
+	NEG $0,$1
 	SET $1,$0
 L:26	IS @
 	SET $0,$1

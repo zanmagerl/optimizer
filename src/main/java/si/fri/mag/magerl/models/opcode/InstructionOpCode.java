@@ -144,6 +144,10 @@ public enum InstructionOpCode implements OpCode {
             STB, STW, STT, STO, STBU, STWU, STTU, STOU
     );
 
+    private static final List<InstructionOpCode> ARITHMETIC_INSTRUCTIONS = List.of(
+            ADD, SUB, MUL, DIV, ADDU, SUBU, MULU, DIVU
+    );
+
     public static Optional<InstructionOpCode> from(String opCode) {
         return Arrays.stream(InstructionOpCode.values()).filter(o -> o.name().equals(opCode)).findFirst();
     }
@@ -166,5 +170,9 @@ public enum InstructionOpCode implements OpCode {
 
     public static boolean isSubroutineInstructionOpCode(InstructionOpCode instructionOpCode) {
         return instructionOpCode == PUSHJ || instructionOpCode == PUSHGO;
+    }
+
+    public static boolean isArithmeticInstructionOpCode(InstructionOpCode instructionOpCode) {
+        return ARITHMETIC_INSTRUCTIONS.contains(instructionOpCode);
     }
 }
