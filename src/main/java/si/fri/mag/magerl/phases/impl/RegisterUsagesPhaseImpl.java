@@ -20,7 +20,6 @@ public class RegisterUsagesPhaseImpl implements Phase {
         for (String routine : RoutineUtil.routineMapping.keySet()) {
             RegisterUtil.availableRegisters.put(routine, new HashMap<>());
             List<RawInstruction> routineSourceCode = getRoutineSourceCode(rawInstructions, routine);
-            log.info("Routine {} has highest register {}", routine, highestLocalRegister(routineSourceCode));
             List<RawInstruction> reversedElements = routineSourceCode.subList(0, routineSourceCode.size());
             Collections.reverse(reversedElements);
             Set<String> currentlyUnusedRegisters = new HashSet<>(IntStream.range(0, highestLocalRegister(routineSourceCode) + 1).mapToObj(number -> "$" + number).toList());
@@ -41,22 +40,17 @@ public class RegisterUsagesPhaseImpl implements Phase {
                 }
 
                 if (instruction.isSubroutineCall()) {
-                    log.info("Before {}: {}", instruction, currentlyUnusedRegisters);
+                    log.debug("Before {}: {}", instruction, currentlyUnusedRegisters);
                     int highestLocalRegister = highestLocalRegister(routineSourceCode);
                     int pushX = RegisterUtil.extractRegister(instruction.getFirstOperand());
                     currentlyUnusedRegisters.removeAll(IntStream.range(pushX+1, highestLocalRegister+1).mapToObj(number -> "$" + number).toList());
-                    log.info("After {}: {}", instruction, currentlyUnusedRegisters);
+                    log.debug("After {}: {}", instruction, currentlyUnusedRegisters);
 
                 }
 
                 rawInstruction.setUnusedRegisters(new ArrayList<>(currentlyUnusedRegisters).stream().sorted().toList());
             }
         }
-        log.info("{}", RegisterUtil.availableRegisters.keySet());
-        for (RawInstruction rawInstruction : RegisterUtil.availableRegisters.get("print").keySet().stream().sorted().toList()) {
-            log.info("RawInstruction: {} has unused registers {}", rawInstruction.getRawInstruction(), rawInstruction.getUnusedRegisters());
-        }
-
         return rawInstructions;
     }
 

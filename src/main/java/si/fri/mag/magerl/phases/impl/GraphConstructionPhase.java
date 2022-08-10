@@ -3,6 +3,7 @@ package si.fri.mag.magerl.phases.impl;
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.JMP;
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.POP;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,6 +23,13 @@ public class GraphConstructionPhase implements Phase {
 
     @Override
     public List<RawInstruction> visit(List<RawInstruction> rawInstructions) {
+
+        // To clean up any stuff from previous optimizations
+        for (RawInstruction rawInstruction : rawInstructions) {
+            rawInstruction.setPossibleNextInstructions(new ArrayList<>());
+            rawInstruction.setPossiblePrecedingInstruction(new ArrayList<>());
+        }
+
         for (String routine : RoutineUtil.routineMapping.keySet()) {
             RawInstruction firstRoutineInstruction = RoutineUtil.routineMapping.get(routine);
             /**

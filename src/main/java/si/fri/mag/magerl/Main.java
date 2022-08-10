@@ -1,6 +1,7 @@
 package si.fri.mag.magerl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.phases.Pipeline;
@@ -14,14 +15,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class Main {
     
     public static void main(String[] args){
         log.info("Starting the optimizer!");
-
         CommandLineProcessor commandLineProcessor = new CommandLineProcessor();
         new CommandLine(commandLineProcessor).execute(args);
 

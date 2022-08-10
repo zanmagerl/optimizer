@@ -21,6 +21,15 @@ public class SwapPattern implements Pattern {
         return processedInstructions;
     }
 
+
+    private List<RawInstruction> removeUnusedRegisters(List<RawInstruction> rawInstructions) {
+        List<RawInstruction> processedInstructions = new ArrayList<>();
+
+
+
+        return processedInstructions;
+    }
+
     /**
      * This works well, but we need to fix problems with:
      * SET $1,$0

@@ -40,6 +40,7 @@ public class CmpPattern implements Pattern {
             }
             processedInstruction.add(rawInstructions.get(i));
         }
+        processedInstruction.add(rawInstructions.get(rawInstructions.size()-1));
 
         return processedInstruction;
     }
