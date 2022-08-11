@@ -134,7 +134,8 @@ public enum InstructionOpCode implements OpCode {
     TRIP,
 
     // Non-official opcodes
-    SET
+    SET,
+    LDA,
     ;
     private static final List<InstructionOpCode> BRANCH_INSTRUCTIONS = List.of(
             BN, BZ, BP, BOD, BNN, BNZ, BNP, BEV, PBN, PBZ, PBP, PBOD, PBNN, PBNZ, PBNP, PBEV

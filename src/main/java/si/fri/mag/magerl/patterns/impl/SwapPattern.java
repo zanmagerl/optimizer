@@ -9,8 +9,7 @@ import si.fri.mag.magerl.patterns.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 
-import static si.fri.mag.magerl.models.opcode.InstructionOpCode.POP;
-import static si.fri.mag.magerl.models.opcode.InstructionOpCode.SET;
+import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
 @Slf4j
 public class SwapPattern implements Pattern {

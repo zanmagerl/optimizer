@@ -79,6 +79,11 @@ public class GraphConstructionPhase implements Phase {
                 instructionAfterCall.addPredecessor(rawInstructions.get(i));
             }
         }
+
+        for (RawInstruction rawInstruction : rawInstructions) {
+            log.info("Routine: {}, Instruction: {}, next: {}", rawInstruction.getSubroutine(), rawInstruction.getRawInstruction(), rawInstruction.getPossibleNextInstructions().stream().map(RawInstruction::getRawInstruction).toList());
+        }
+
         return rawInstructions;
     }
 

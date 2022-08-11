@@ -22,7 +22,8 @@ public class ShiftPattern implements Pattern {
             }
             processedInstructions.add(rawInstructions.get(i));
             if (isPotentiallyUselessShiftBlock(rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
-                if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) rawInstructions.get(i).getInstruction().getOpCode())) {
+                if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) rawInstructions.get(i).getInstruction().getOpCode())
+                        && Objects.equals(rawInstructions.get(i).getInstruction().getFirstOperand(), rawInstructions.get(i+1).getInstruction().getFirstOperand())) {
                     log.info("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
                     i += 2;
                     continue;
