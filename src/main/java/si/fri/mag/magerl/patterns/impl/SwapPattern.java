@@ -14,10 +14,15 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 @Slf4j
 public class SwapPattern implements Pattern {
     @Override
-    public List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {
+    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>(rawInstructions);
         processedInstructions = removeSwappingInstructions(processedInstructions);
         return processedInstructions;
+    }
+
+    @Override
+    public List<RawInstruction> branchPattern(List<RawInstruction> rawInstructions) {
+        return null;
     }
 
 
@@ -37,9 +42,9 @@ public class SwapPattern implements Pattern {
      */
     private List<RawInstruction> removeSwappingInstructions(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
-
+        boolean wasPatternUsed = false;
         for (int i = 0; i < rawInstructions.size(); i++) {
-            if (rawInstructions.get(i).isPseudoInstruction()) {
+            if (rawInstructions.get(i).isPseudoInstruction() || wasPatternUsed) {
                 processedInstructions.add(rawInstructions.get(i));
                 continue;
             }
@@ -68,6 +73,7 @@ public class SwapPattern implements Pattern {
                             }
                         }
                         rawInstructions.remove(rawInstructions.get(j));
+                        wasPatternUsed = true;
                         continue;
                     }
                 }

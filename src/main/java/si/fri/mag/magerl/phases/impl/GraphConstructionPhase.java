@@ -51,6 +51,7 @@ public class GraphConstructionPhase implements Phase {
                     instructionAfterBranch.addPredecessor(rawInstructions.get(i));
                 } else if (instruction.isSubroutineCall()) {
                     RawInstruction instructionAfterSubroutineCall = RoutineUtil.routineMapping.get(rawInstructions.get(i).extractSubroutineCallLabel(rawInstructions));
+                    log.info("{} {} {}", instructionAfterSubroutineCall, rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i).extractSubroutineCallLabel(rawInstructions));
                     rawInstructions.get(i).addNextInstruction(instructionAfterSubroutineCall);
                     instructionAfterSubroutineCall.addPredecessor(rawInstructions.get(i));
                 }

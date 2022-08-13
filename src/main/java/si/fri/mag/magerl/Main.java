@@ -1,13 +1,9 @@
 package si.fri.mag.magerl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import si.fri.mag.magerl.models.RawInstruction;
-import si.fri.mag.magerl.phases.Pipeline;
-import si.fri.mag.magerl.phases.impl.CleaningPhaseImpl;
-import si.fri.mag.magerl.phases.impl.PatternPhaseImpl;
-import si.fri.mag.magerl.phases.impl.StandardLibraryPhaseImpl;
+import si.fri.mag.magerl.pipeline.impl.LinearPipelineImpl;
 import si.fri.mag.magerl.utils.FileUtil;
 
 import java.io.File;
@@ -30,8 +26,8 @@ public class Main {
         try {
             List<RawInstruction> rawInstructions = FileUtil.readProgram(new FileInputStream(file));
             log.info("Number of instruction: {}", rawInstructions.size());
-            Pipeline pipeline = new Pipeline(rawInstructions);
-            List<RawInstruction> optimizedCode = pipeline.run(rawInstructions);
+            LinearPipelineImpl linearPipelineImpl = new LinearPipelineImpl();
+            List<RawInstruction> optimizedCode = linearPipelineImpl.run(rawInstructions);
             log.info("Number of instructions in the optimized code: {}", optimizedCode.size());
             FileUtil.writeProgram(optimizedCode.stream().map(RawInstruction::getRawInstruction).toList(), FileUtil.extendPathWithFile(FileUtil.getTargetDirectory(), "output.mms"));
         } catch (FileNotFoundException e) {

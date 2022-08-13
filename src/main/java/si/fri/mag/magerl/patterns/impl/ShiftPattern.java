@@ -13,10 +13,11 @@ import java.util.Objects;
 @Slf4j
 public class ShiftPattern implements Pattern {
     @Override
-    public List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {
+    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
+        boolean wasPatternUsed = false;
         for (int i = 0; i < rawInstructions.size() - 2; i++) {
-            if (rawInstructions.get(i).isPseudoInstruction() || rawInstructions.get(i + 1).isPseudoInstruction() || rawInstructions.get(i + 2).isPseudoInstruction() || rawInstructions.get(i).getInstruction().getOpCode() instanceof PseudoOpCode) {
+            if (wasPatternUsed || rawInstructions.get(i).isPseudoInstruction() || rawInstructions.get(i + 1).isPseudoInstruction() || rawInstructions.get(i + 2).isPseudoInstruction() || rawInstructions.get(i).getInstruction().getOpCode() instanceof PseudoOpCode) {
                 processedInstructions.add(rawInstructions.get(i));
                 continue;
             }
@@ -26,6 +27,7 @@ public class ShiftPattern implements Pattern {
                         && Objects.equals(rawInstructions.get(i).getInstruction().getFirstOperand(), rawInstructions.get(i+1).getInstruction().getFirstOperand())) {
                     log.info("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
                     i += 2;
+                    wasPatternUsed = true;
                     continue;
                 }
             }
@@ -36,12 +38,18 @@ public class ShiftPattern implements Pattern {
                         .firstOperand(rawInstructions.get(i+1).getInstruction().getFirstOperand())
                         .build());
                 i += 2;
+                wasPatternUsed = true;
             }
 
         }
         // Do not forget to include last two instructions!
         processedInstructions.addAll(rawInstructions.subList(rawInstructions.size() - 2, rawInstructions.size()));
         return processedInstructions;
+    }
+
+    @Override
+    public List<RawInstruction> branchPattern(List<RawInstruction> rawInstructions) {
+        return null;
     }
 
     private boolean isPotentiallyUselessShiftBlock(RawInstruction firstInstruction, RawInstruction secondInstruction) {

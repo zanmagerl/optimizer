@@ -15,10 +15,11 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.POP;
 @Slf4j
 public class PutPattern implements Pattern {
     @Override
-    public List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {
+    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
+        boolean wasPatternUsed = false;
         for (RawInstruction rawInstruction : rawInstructions) {
-            if (rawInstruction.isPseudoInstruction()) {
+            if (rawInstruction.isPseudoInstruction() || wasPatternUsed) {
                 processedInstructions.add(rawInstruction);
                 continue;
             }
@@ -27,6 +28,7 @@ public class PutPattern implements Pattern {
                 if (instruction.getFirstOperand().equals("rJ")) {
                     if (isThereAnotherSubroutineCallInstruction(rawInstruction)) {
                         log.info("Remove PUT instruction {}", rawInstruction);
+                        wasPatternUsed = true;
                         continue;
                     }
                 }
@@ -34,6 +36,11 @@ public class PutPattern implements Pattern {
             processedInstructions.add(rawInstruction);
         }
         return processedInstructions;
+    }
+
+    @Override
+    public List<RawInstruction> branchPattern(List<RawInstruction> rawInstructions) {
+        return null;
     }
 
     /**
@@ -48,6 +55,7 @@ public class PutPattern implements Pattern {
         }
 
         boolean isThereAnotherCall = true;
+        log.info("{}: {}", rawInstruction.getRawInstruction(), rawInstruction.getPossibleNextInstructions());
         for (RawInstruction nextInstruction : rawInstruction.getPossibleNextInstructions()) {
             isThereAnotherCall &= isThereAnotherSubroutineCallInstruction(nextInstruction);
         }

@@ -1,18 +1,17 @@
 package si.fri.mag.magerl.models;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.PUSHJ;
 
 @Data
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class RawInstruction implements Comparable{
 
     private static Integer counter = 0;

@@ -16,11 +16,15 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 public class UnusedRegisterPattern implements Pattern {
 
     @Override
-    public List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {
+    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>(rawInstructions);
         processedInstructions = removeSetAfterArithmeticOperation(processedInstructions);
-        processedInstructions = removeUnusedSetInstructions(processedInstructions);
         return processedInstructions;
+    }
+
+    @Override
+    public List<RawInstruction> branchPattern(List<RawInstruction> rawInstructions) {
+        return null;
     }
 
     /***
@@ -32,8 +36,9 @@ public class UnusedRegisterPattern implements Pattern {
 
     private List<RawInstruction> removeSetAfterArithmeticOperation(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
+        boolean wasPatternUsed = false;
         for (int i = 0; i < rawInstructions.size()-1; i++) {
-            if (rawInstructions.get(i).isPseudoInstruction() || rawInstructions.get(i).getInstruction().getOpCode() instanceof PseudoOpCode) {
+            if (rawInstructions.get(i).isPseudoInstruction() || rawInstructions.get(i).getInstruction().getOpCode() instanceof PseudoOpCode || wasPatternUsed) {
                 processedInstructions.add(rawInstructions.get(i));
                 continue;
             }
@@ -49,6 +54,7 @@ public class UnusedRegisterPattern implements Pattern {
                             .build());
                     processedInstructions.add(rawInstructions.get(i));
                     i++;
+                    wasPatternUsed = true;
                     continue;
                 }
             }
@@ -61,6 +67,7 @@ public class UnusedRegisterPattern implements Pattern {
                             .build());
                     processedInstructions.add(rawInstructions.get(i));
                     i++;
+                    wasPatternUsed = true;
                     continue;
                 }
             }
@@ -73,6 +80,7 @@ public class UnusedRegisterPattern implements Pattern {
                             .build());
                     processedInstructions.add(rawInstructions.get(i));
                     i++;
+                    wasPatternUsed = true;
                     continue;
                 }
             }
@@ -85,8 +93,35 @@ public class UnusedRegisterPattern implements Pattern {
                             .build());
                     processedInstructions.add(rawInstructions.get(i));
                     i++;
+                    wasPatternUsed = true;
                     continue;
                 }
+            }
+            /**
+             * Removes stuff like that:
+             * SET $1,#a
+             * ...
+             * SET $3,$1
+             * ...
+             * ...
+             * SET $1,#sth
+             *
+             * AND
+             *
+             * 	SET $5,$0
+             *  .... ($5 unused)
+             * 	SET $7,$5
+             */
+            if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) firstInstruction.getOpCode()) || firstInstruction.getOpCode() == SETL || firstInstruction.getOpCode() == SET || InstructionOpCode.isArithmeticInstructionOpCode((InstructionOpCode) firstInstruction.getOpCode())) {
+                String potentiallyUnusedRegister = firstInstruction.getFirstOperand();
+                RawInstruction returnedInstruction = instructionToCombineWith(rawInstructions.get(i+1), potentiallyUnusedRegister);
+                if (returnedInstruction != null && returnedInstruction.getPossibleNextInstructions().get(0).getUnusedRegisters().contains(potentiallyUnusedRegister) && isUnusedBetween(rawInstructions.get(i), returnedInstruction, returnedInstruction.getInstruction().getFirstOperand())) {
+                    log.info("{}, Combining instructions more far away {} and {}", rawInstructions.get(i).getSubroutine(), rawInstructions.get(i).getRawInstruction(), returnedInstruction.getRawInstruction());
+                    firstInstruction.setFirstOperand(returnedInstruction.getInstruction().getFirstOperand());
+                    rawInstructions.remove(returnedInstruction);
+                    wasPatternUsed = true;
+                }
+
             }
 
             processedInstructions.add(rawInstructions.get(i));
@@ -95,21 +130,8 @@ public class UnusedRegisterPattern implements Pattern {
         return processedInstructions;
     }
 
-    /**
-     * Removes stuff like that:
-     * SET $1,#a
-     * ...
-     * SET $3,$1
-     * ...
-     * ...
-     * SET $1,#sth
-     *
-     * AND
-     *
-     * 	SET $5,$0
-     *  .... ($5 unused)
-     * 	SET $7,$5
-     */
+
+    @Deprecated
     private List<RawInstruction> removeUnusedSetInstructions(List<RawInstruction> rawInstructions) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
 
@@ -127,7 +149,6 @@ public class UnusedRegisterPattern implements Pattern {
                     instruction.setFirstOperand(returnedInstruction.getInstruction().getFirstOperand());
                     rawInstructions.remove(returnedInstruction);
                 }
-                // Find first instruction that uses secondOperand, if after that is register unused, you can substitute both with one
             }
             processedInstructions.add(rawInstructions.get(i));
         }

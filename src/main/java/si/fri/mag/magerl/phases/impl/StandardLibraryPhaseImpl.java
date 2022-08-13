@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class StandardLibraryPhaseImpl implements Phase {
@@ -42,6 +43,13 @@ public class StandardLibraryPhaseImpl implements Phase {
                 isPrintChar = true;
                 replacedRawInstructions.addAll(loadSubprogram(Subprogram.PRINT_CHAR));
             } else if (!isPrintChar){
+                //O2 optimizations use this
+                if (rawInstruction.getRawInstruction().contains("putchar")) {
+                    if (!Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "putchar")) {
+                        throw new RuntimeException("Instruction contains putchar, but is not as second operand" + rawInstruction.getRawInstruction());
+                    }
+                    rawInstruction.getInstruction().setSecondOperand("print_char");
+                }
                 replacedRawInstructions.add(rawInstruction);
             }
 
