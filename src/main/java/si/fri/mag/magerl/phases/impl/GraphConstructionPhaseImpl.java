@@ -19,7 +19,7 @@ import si.fri.mag.magerl.utils.RoutineUtil;
  * @author zan.magerl
  */
 @Slf4j
-public class GraphConstructionPhase implements Phase {
+public class GraphConstructionPhaseImpl implements Phase {
 
     @Override
     public List<RawInstruction> visit(List<RawInstruction> rawInstructions) {
@@ -51,7 +51,7 @@ public class GraphConstructionPhase implements Phase {
                     instructionAfterBranch.addPredecessor(rawInstructions.get(i));
                 } else if (instruction.isSubroutineCall()) {
                     RawInstruction instructionAfterSubroutineCall = RoutineUtil.routineMapping.get(rawInstructions.get(i).extractSubroutineCallLabel(rawInstructions));
-                    log.info("{} {} {}", instructionAfterSubroutineCall, rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i).extractSubroutineCallLabel(rawInstructions));
+                    log.debug("{} {} {}", instructionAfterSubroutineCall, rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i).extractSubroutineCallLabel(rawInstructions));
                     rawInstructions.get(i).addNextInstruction(instructionAfterSubroutineCall);
                     instructionAfterSubroutineCall.addPredecessor(rawInstructions.get(i));
                 }
@@ -82,7 +82,7 @@ public class GraphConstructionPhase implements Phase {
         }
 
         for (RawInstruction rawInstruction : rawInstructions) {
-            log.info("Routine: {}, Instruction: {}, next: {}", rawInstruction.getSubroutine(), rawInstruction.getRawInstruction(), rawInstruction.getPossibleNextInstructions().stream().map(RawInstruction::getRawInstruction).toList());
+            log.debug("Routine: {}, Instruction: {}, next: {}", rawInstruction.getSubroutine(), rawInstruction.getRawInstruction(), rawInstruction.getPossibleNextInstructions().stream().map(RawInstruction::getRawInstruction).toList());
         }
 
         return rawInstructions;

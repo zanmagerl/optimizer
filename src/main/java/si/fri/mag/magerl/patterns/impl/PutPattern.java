@@ -4,18 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import si.fri.mag.magerl.models.Instruction;
 import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
-import si.fri.mag.magerl.models.opcode.PseudoOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.POP;
 
 @Slf4j
 public class PutPattern implements Pattern {
     @Override
-    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions) {
+    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
         boolean wasPatternUsed = false;
         for (RawInstruction rawInstruction : rawInstructions) {
@@ -27,7 +27,7 @@ public class PutPattern implements Pattern {
             if (instruction.getOpCode() == InstructionOpCode.PUT) {
                 if (instruction.getFirstOperand().equals("rJ")) {
                     if (isThereAnotherSubroutineCallInstruction(rawInstruction)) {
-                        log.info("Remove PUT instruction {}", rawInstruction);
+                        log.debug("Remove PUT instruction {}", rawInstruction);
                         wasPatternUsed = true;
                         continue;
                     }
@@ -39,8 +39,8 @@ public class PutPattern implements Pattern {
     }
 
     @Override
-    public List<RawInstruction> branchPattern(List<RawInstruction> rawInstructions) {
-        return null;
+    public List<List<RawInstruction>> branchPattern(List<RawInstruction> rawInstructions) {
+        return List.of(usePattern(rawInstructions));
     }
 
     /**
@@ -55,7 +55,6 @@ public class PutPattern implements Pattern {
         }
 
         boolean isThereAnotherCall = true;
-        log.info("{}: {}", rawInstruction.getRawInstruction(), rawInstruction.getPossibleNextInstructions());
         for (RawInstruction nextInstruction : rawInstruction.getPossibleNextInstructions()) {
             isThereAnotherCall &= isThereAnotherSubroutineCallInstruction(nextInstruction);
         }

@@ -91,6 +91,7 @@ print_integer	IS @
 	GET $1,rJ
 	SET $2,$0
 	SUBU $0,$253,20
+	SET $2,$2
 	STTU $2,$0,0
 	SUBU $0,$253,20
 	LDT $0,$0,0
@@ -122,17 +123,20 @@ print_integer	IS @
 	GET $2,:rR
 	NEG $5,$2
 	CSNN $2,$255,$5
+	SET $2,$2
 	SUBU $0,$253,9
 	STBU $2,$0,0
 	SUBU $0,$253,9
 	LDB $0,$0,0
 	ADDU $0,$0,48
+	SET $0,$0
 	SLU $0,$0,56
 	SR $0,$0,56
 	SET $7,$0
 	PUSHJ $6,print_char
 	PUT rJ,$1
 L:10	IS @
+	SWYM 0,0,0
 	LDO $253,$254,16
 	ADDU $254,$254,24
 	POP 0,0
@@ -315,7 +319,8 @@ L:23	IS @
 	LDT $1,$0,0
 	SUBU $0,$253,24
 	LDT $0,$0,0
-	SUBU $1,$1,$0
+	SUBU $0,$1,$0
+	SET $1,$0
 	SLU $0,$1,32
 	SR $0,$0,32
 	BNN $0,L:25
@@ -326,7 +331,8 @@ L:25	IS @
 	SUBU $0,$253,20
 	LDT $1,$1,0
 	LDT $0,$0,0
-	SUBU $1,$1,$0
+	SUBU $0,$1,$0
+	SET $1,$0
 	SLU $0,$1,32
 	SR $0,$0,32
 	BNN $0,L:26

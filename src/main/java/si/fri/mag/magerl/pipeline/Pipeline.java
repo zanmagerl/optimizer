@@ -12,7 +12,7 @@ public interface Pipeline {
             new StandardLibraryPhaseImpl(),
             new CleaningPhaseImpl(),
             new SubroutineLabelingPhaseImpl(),
-            new GraphConstructionPhase(),
+            new GraphConstructionPhaseImpl(),
             new RegisterUsagesPhaseImpl(),
             new PatternPhaseImpl(),
             new SwapPhaseImpl()

@@ -9,6 +9,9 @@ public class AbsoluteMetric implements Metric {
 
     @Override
     public Integer value(List<RawInstruction> rawInstructions) {
+        if (rawInstructions.isEmpty()) {
+            return Integer.MAX_VALUE;
+        }
         return rawInstructions.size();
     }
 }

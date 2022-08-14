@@ -9,11 +9,12 @@ import si.fri.mag.magerl.patterns.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 @Slf4j
 public class ShiftPattern implements Pattern {
     @Override
-    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions) {
+    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
         boolean wasPatternUsed = false;
         for (int i = 0; i < rawInstructions.size() - 2; i++) {
@@ -25,7 +26,7 @@ public class ShiftPattern implements Pattern {
             if (isPotentiallyUselessShiftBlock(rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
                 if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) rawInstructions.get(i).getInstruction().getOpCode())
                         && Objects.equals(rawInstructions.get(i).getInstruction().getFirstOperand(), rawInstructions.get(i+1).getInstruction().getFirstOperand())) {
-                    log.info("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
+                    log.debug("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
                     i += 2;
                     wasPatternUsed = true;
                     continue;
@@ -33,7 +34,7 @@ public class ShiftPattern implements Pattern {
             }
 
             if (isPotentiallyUnusedRegisterShiftBlock(rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
-                log.info("Useless shifting with unused registers: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
+                log.debug("Useless shifting with unused registers: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
                 rawInstructions.get(i).setInstruction(rawInstructions.get(i).getInstruction().toBuilder()
                         .firstOperand(rawInstructions.get(i+1).getInstruction().getFirstOperand())
                         .build());
@@ -48,8 +49,8 @@ public class ShiftPattern implements Pattern {
     }
 
     @Override
-    public List<RawInstruction> branchPattern(List<RawInstruction> rawInstructions) {
-        return null;
+    public List<List<RawInstruction>> branchPattern(List<RawInstruction> rawInstructions) {
+        return List.of(usePattern(rawInstructions));
     }
 
     private boolean isPotentiallyUselessShiftBlock(RawInstruction firstInstruction, RawInstruction secondInstruction) {

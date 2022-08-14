@@ -5,18 +5,21 @@ import si.fri.mag.magerl.models.Instruction;
 import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
+import si.fri.mag.magerl.utils.BranchingUtil;
+import si.fri.mag.magerl.utils.CopyUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Predicate;
 
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
 @Slf4j
 public class CmpPattern implements Pattern {
 
+    private final List<Integer> patternUsages = new ArrayList<>();
+
     @Override
-    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions) {
+    public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         List<RawInstruction> processedInstruction = new ArrayList<>();
         boolean wasPatternUsed = false;
         for (int i = 0; i < rawInstructions.size() - 1; i++) {
@@ -30,11 +33,14 @@ public class CmpPattern implements Pattern {
                     Instruction branchInstruction = rawInstructions.get(i+1).getInstruction();
                     if (branchInstruction != null && InstructionOpCode.isBranchInstructionOpCode((InstructionOpCode) branchInstruction.getOpCode()) && Objects.equals(instruction.getFirstOperand(), branchInstruction.getFirstOperand())) {
                         if (notReadBeforeWrittenAgain(rawInstructions, i+1, branchInstruction.getFirstOperand())){
-                            log.info("Removing unneeded CMP instruction: {}, {}", rawInstructions.get(i), rawInstructions.get(i+1));
-                            processedInstruction.add(rawInstructions.get(i+1));
-                            wasPatternUsed = true;
-                            i++;
-                            continue;
+                            patternUsages.add(rawInstructions.get(i).getId());
+                            if (optimizationDecider.test(rawInstructions.get(i).getId())) {
+                                log.debug("Removing unneeded CMP instruction: {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1));
+                                processedInstruction.add(rawInstructions.get(i + 1));
+                                wasPatternUsed = true;
+                                i++;
+                                continue;
+                            }
                         }
                     }
                 }
@@ -47,8 +53,16 @@ public class CmpPattern implements Pattern {
     }
 
     @Override
-    public List<RawInstruction> branchPattern(List<RawInstruction> rawInstructions) {
-        return null;
+    public List<List<RawInstruction>> branchPattern(List<RawInstruction> rawInstructions) {
+        patternUsages.clear();
+        rawInstructions = usePattern(rawInstructions, x -> false);
+        log.debug("Pattern {} is used in {}", this.getClass(), patternUsages);
+        List<List<Integer>> combinations = BranchingUtil.getBranchingOptions(patternUsages);
+        List<List<RawInstruction>> possibilities = new ArrayList<>();
+        for (List<Integer> combination : combinations) {
+            possibilities.add(usePattern(CopyUtil.copyRawInstructions(rawInstructions), combination::contains));
+        }
+        return possibilities;
     }
 
     private boolean notReadBeforeWrittenAgain(List<RawInstruction> rawInstructions, int index, String firstOperand) {
