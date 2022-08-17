@@ -8,6 +8,8 @@ import java.util.function.Predicate;
 
 public interface Pattern {
 
+    Predicate<Integer> SCOUT = x -> false;
+
     List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider);
 
     default List<RawInstruction> usePattern(List<RawInstruction> rawInstructions) {

@@ -10,7 +10,11 @@ import si.fri.mag.magerl.phases.Phase;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
 
 @Slf4j
 public class PatternPhaseImpl implements Phase {
@@ -26,7 +30,9 @@ public class PatternPhaseImpl implements Phase {
 
     private final Metric metric = new AbsoluteMetric();
 
-    private static final boolean BRANCHING = true;
+    Comparator<List<RawInstruction>> comparator = (o1, o2) -> metric.value(o1).compareTo(metric.value(o2));
+
+    private static final boolean BRANCHING = false;
 
     @Override
     public List<RawInstruction> visit(List<RawInstruction> rawInstructions) {
@@ -41,8 +47,9 @@ public class PatternPhaseImpl implements Phase {
                     log.info("{}", counter++);
                     List<List<RawInstruction>> procc = pattern.branchPattern(currentPossibleProgram);
                     processedPrograms.addAll(procc);
+                    System.gc();
                 }
-                currentPossiblePrograms = processedPrograms;
+                currentPossiblePrograms = processedPrograms.stream().sorted(comparator).toList().subList(0, Math.min(NUMBER_OF_PROGRAMS, processedPrograms.size()));
                 log.info("After pattern {} we have {} number of programs", pattern.getClass(), currentPossiblePrograms.size());
             }
             return currentPossiblePrograms.stream().reduce(Collections.emptyList(), (a, b) -> metric.value(a) < metric.value(b) ? a : b);

@@ -5,22 +5,24 @@ import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.phases.Phase;
 import si.fri.mag.magerl.pipeline.Pipeline;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_RUNS;
 
 @Slf4j
 public class LinearPipelineImpl implements Pipeline {
-
-    private static final Integer NUMBER_OF_RUNS = 1;
-
     @Override
-    public List<RawInstruction> run(List<RawInstruction> rawInstructions) {
+    public List<List<RawInstruction>> run(List<RawInstruction> rawInstructions) {
+        List<List<RawInstruction>> programs = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_RUNS; i++) {
             log.info("Run number: {}", i+1);
             for (Phase phase : phases) {
                 rawInstructions = phase.visit(rawInstructions);
             }
+            programs.add(rawInstructions);
         }
-        return rawInstructions;
+        return programs;
     }
 
 }

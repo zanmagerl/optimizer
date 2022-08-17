@@ -5,15 +5,22 @@ import si.fri.mag.magerl.models.Instruction;
 import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
+import si.fri.mag.magerl.utils.BranchingUtil;
+import si.fri.mag.magerl.utils.CopyUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static si.fri.mag.magerl.config.BranchingConfig.BRANCHING_FACTOR;
+import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.POP;
 
 @Slf4j
 public class PutPattern implements Pattern {
+
+    private final List<Integer> patternUsages = new ArrayList<>();
+
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
@@ -27,9 +34,12 @@ public class PutPattern implements Pattern {
             if (instruction.getOpCode() == InstructionOpCode.PUT) {
                 if (instruction.getFirstOperand().equals("rJ")) {
                     if (isThereAnotherSubroutineCallInstruction(rawInstruction)) {
-                        log.debug("Remove PUT instruction {}", rawInstruction);
-                        wasPatternUsed = true;
-                        continue;
+                        patternUsages.add(rawInstruction.getId());
+                        if (optimizationDecider.test(rawInstruction.getId())) {
+                            log.debug("Remove PUT instruction {}", rawInstruction);
+                            wasPatternUsed = true;
+                            continue;
+                        }
                     }
                 }
             }

@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
+
 @Slf4j
 public class PointlessInstructionPattern implements Pattern {
 
@@ -52,15 +54,7 @@ public class PointlessInstructionPattern implements Pattern {
 
     @Override
     public List<List<RawInstruction>> branchPattern(List<RawInstruction> rawInstructions) {
-        patternUsages.clear();
-        rawInstructions = usePattern(rawInstructions, x -> false);
-        List<List<Integer>> combinations = BranchingUtil.getBranchingOptions(patternUsages);
-        log.info("Combinations {}, patternUsages: {}", combinations.size(), patternUsages);
-        List<List<RawInstruction>> possibilities = new ArrayList<>();
-        for (List<Integer> combination : combinations) {
-            possibilities.add(usePattern(CopyUtil.copyRawInstructions(rawInstructions), combination::contains));
-        }
-        return possibilities;
+        return List.of(usePattern(rawInstructions));
     }
 
     /**

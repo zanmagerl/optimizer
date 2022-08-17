@@ -27,9 +27,20 @@ public class Main {
             List<RawInstruction> rawInstructions = FileUtil.readProgram(new FileInputStream(file));
             log.info("Number of instruction: {}", rawInstructions.size());
             LinearPipelineImpl linearPipelineImpl = new LinearPipelineImpl();
-            List<RawInstruction> optimizedCode = linearPipelineImpl.run(rawInstructions);
-            log.info("Number of instructions in the optimized code: {}", optimizedCode.size());
-            FileUtil.writeProgram(optimizedCode.stream().map(RawInstruction::getRawInstruction).toList(), FileUtil.extendPathWithFile(FileUtil.getTargetDirectory(), "output.mms"));
+            List<List<RawInstruction>> optimizedCodes = linearPipelineImpl.run(rawInstructions);
+            log.info("Number of instructions in the optimized code: {}", optimizedCodes.get(optimizedCodes.size()-1).size());
+
+            for (int i = 0; i < optimizedCodes.size(); i++) {
+                List<RawInstruction> optimizedCode = optimizedCodes.get(i);
+                String outputFile;
+                if (commandLineProcessor.outputProgram != null) {
+                    outputFile = commandLineProcessor.outputProgram;
+                } else {
+                    outputFile = FileUtil.extendPathWithFile(FileUtil.getTargetDirectory(), "output.mms");
+                }
+                outputFile = outputFile.replace(".mms", String.format("-%d.mms", i+1));
+                FileUtil.writeProgram(optimizedCode.stream().map(RawInstruction::getRawInstruction).toList(), outputFile);
+            }
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }

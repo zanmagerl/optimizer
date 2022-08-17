@@ -11,6 +11,8 @@ import si.fri.mag.magerl.utils.CopyUtil;
 import java.util.*;
 import java.util.function.Predicate;
 
+import static si.fri.mag.magerl.config.BranchingConfig.BRANCHING_FACTOR;
+import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
 @Slf4j
@@ -57,7 +59,7 @@ public class CmpPattern implements Pattern {
         patternUsages.clear();
         rawInstructions = usePattern(rawInstructions, x -> false);
         log.debug("Pattern {} is used in {}", this.getClass(), patternUsages);
-        List<List<Integer>> combinations = BranchingUtil.getBranchingOptions(patternUsages);
+        List<List<Integer>> combinations = BranchingUtil.sampleBranchingOptions(patternUsages, BRANCHING_FACTOR);
         List<List<RawInstruction>> possibilities = new ArrayList<>();
         for (List<Integer> combination : combinations) {
             possibilities.add(usePattern(CopyUtil.copyRawInstructions(rawInstructions), combination::contains));

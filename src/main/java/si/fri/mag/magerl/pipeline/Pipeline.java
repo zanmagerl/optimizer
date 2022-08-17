@@ -18,5 +18,5 @@ public interface Pipeline {
             new SwapPhaseImpl()
     );
 
-    List<RawInstruction> run(List<RawInstruction> rawInstructions);
+    List<List<RawInstruction>> run(List<RawInstruction> rawInstructions);
 }

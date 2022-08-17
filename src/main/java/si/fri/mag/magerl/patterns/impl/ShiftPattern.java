@@ -5,14 +5,22 @@ import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.models.opcode.PseudoOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
+import si.fri.mag.magerl.utils.BranchingUtil;
+import si.fri.mag.magerl.utils.CopyUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import static si.fri.mag.magerl.config.BranchingConfig.BRANCHING_FACTOR;
+import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
+
 @Slf4j
 public class ShiftPattern implements Pattern {
+
+    private final List<Integer> patternUsages = new ArrayList<>();
+
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
@@ -26,20 +34,26 @@ public class ShiftPattern implements Pattern {
             if (isPotentiallyUselessShiftBlock(rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
                 if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) rawInstructions.get(i).getInstruction().getOpCode())
                         && Objects.equals(rawInstructions.get(i).getInstruction().getFirstOperand(), rawInstructions.get(i+1).getInstruction().getFirstOperand())) {
-                    log.debug("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
-                    i += 2;
-                    wasPatternUsed = true;
-                    continue;
+                    patternUsages.add(rawInstructions.get(i).getId());
+                    if (optimizationDecider.test(rawInstructions.get(i).getId())) {
+                        log.debug("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
+                        i += 2;
+                        wasPatternUsed = true;
+                        continue;
+                    }
                 }
             }
 
             if (isPotentiallyUnusedRegisterShiftBlock(rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
-                log.debug("Useless shifting with unused registers: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
-                rawInstructions.get(i).setInstruction(rawInstructions.get(i).getInstruction().toBuilder()
-                        .firstOperand(rawInstructions.get(i+1).getInstruction().getFirstOperand())
-                        .build());
-                i += 2;
-                wasPatternUsed = true;
+                patternUsages.add(rawInstructions.get(i).getId());
+                if (optimizationDecider.test(rawInstructions.get(i).getId())) {
+                    log.debug("Useless shifting with unused registers: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
+                    rawInstructions.get(i).setInstruction(rawInstructions.get(i).getInstruction().toBuilder()
+                            .firstOperand(rawInstructions.get(i + 1).getInstruction().getFirstOperand())
+                            .build());
+                    i += 2;
+                    wasPatternUsed = true;
+                }
             }
 
         }
@@ -50,7 +64,15 @@ public class ShiftPattern implements Pattern {
 
     @Override
     public List<List<RawInstruction>> branchPattern(List<RawInstruction> rawInstructions) {
-        return List.of(usePattern(rawInstructions));
+        patternUsages.clear();
+        rawInstructions = usePattern(rawInstructions, SCOUT);
+        log.debug("Pattern {} is used in {}", this.getClass(), patternUsages);
+        List<List<Integer>> combinations = BranchingUtil.sampleBranchingOptions(patternUsages, BRANCHING_FACTOR);
+        List<List<RawInstruction>> possibilities = new ArrayList<>();
+        for (List<Integer> combination : combinations) {
+            possibilities.add(usePattern(CopyUtil.copyRawInstructions(rawInstructions), combination::contains));
+        }
+        return possibilities;
     }
 
     private boolean isPotentiallyUselessShiftBlock(RawInstruction firstInstruction, RawInstruction secondInstruction) {
