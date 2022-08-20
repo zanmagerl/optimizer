@@ -31,12 +31,12 @@ public class RegisterUsagesPhaseImpl implements Phase {
         return rawInstructions;
     }
 
-    Map<RawInstruction, List<RawInstruction>> memo = new HashMap<>();
+    Map<RawInstruction, Set<String>> memo = new HashMap<>();
 
     private void findUnusedRegisters(String routine, RawInstruction iterInstruction, Set<String> currentlyUnusedRegisters, int highestLocalRegister, RawInstruction fromInstruction) {
         // To avoid loops
         if(memo.containsKey(iterInstruction)) {
-            if (memo.get(iterInstruction).contains(fromInstruction)) {
+            if (memo.get(iterInstruction).equals(currentlyUnusedRegisters)) {
                 return;
             }
         }
@@ -47,7 +47,9 @@ public class RegisterUsagesPhaseImpl implements Phase {
         if (Objects.equals(RoutineUtil.routineMapping.get(routine).getId(), iterInstruction.getId())) {
             return;
         }
-
+        if (iterInstruction.getRawInstruction().contains("CMP $5,$12,$6")) {
+            log.info("{} {} {}", iterInstruction.getUnusedRegisters(), currentlyUnusedRegisters, fromInstruction.getUnusedRegisters());
+        }
         /**
          * Here we now go and assume first that all registers and free and then decide depending if it is a write or read instruction
          */
@@ -64,22 +66,22 @@ public class RegisterUsagesPhaseImpl implements Phase {
         }
 
         if (instruction.isSubroutineCall()) {
-            log.debug("Before {}: {}", instruction, currentlyUnusedRegisters);
             int pushX = RegisterUtil.extractRegister(instruction.getFirstOperand());
             currentlyUnusedRegisters.removeAll(IntStream.range(pushX+1, highestLocalRegister+1).mapToObj(number -> "$" + number).toList());
-            log.debug("After {}: {}", instruction, currentlyUnusedRegisters);
 
         }
         iterInstruction.addUnusedRegisters(new ArrayList<>(new ArrayList<>(currentlyUnusedRegisters).stream().sorted().toList()));
-
+        if (iterInstruction.getRawInstruction().contains("BN $5,L:32")) {
+            log.info("BN $5,L:32 {} {} {}", iterInstruction.getUnusedRegisters(), currentlyUnusedRegisters, fromInstruction.getUnusedRegisters());
+        }
         if (memo.containsKey(iterInstruction)) {
-            memo.get(iterInstruction).add(fromInstruction);
+            memo.put(iterInstruction, new HashSet<>(iterInstruction.getUnusedRegisters()));
         } else if (fromInstruction != null){
-            memo.put(iterInstruction, new ArrayList<>(List.of(fromInstruction)));
+            memo.put(iterInstruction, new HashSet<>(iterInstruction.getUnusedRegisters()));
         }
 
         for (RawInstruction previousInstruction : iterInstruction.getPossiblePrecedingInstruction()) {
-            findUnusedRegisters(routine, previousInstruction, new HashSet<>(currentlyUnusedRegisters), highestLocalRegister, iterInstruction);
+            findUnusedRegisters(routine, previousInstruction, new HashSet<>(iterInstruction.getUnusedRegisters()), highestLocalRegister, iterInstruction);
         }
     }
 
@@ -89,10 +91,10 @@ public class RegisterUsagesPhaseImpl implements Phase {
         List<RawInstruction> routineSourceCode = new ArrayList<>();
         int startIndex = rawInstructions.indexOf(RoutineUtil.routineMapping.get(routine));
         for (int i = startIndex; ; i++) {
-            routineSourceCode.add(rawInstructions.get(i));
-            if (rawInstructions.get(i).getInstruction().getOpCode() == POP) {
+            if (rawInstructions.get(i).isPseudoInstruction()) {
                 break;
             }
+            routineSourceCode.add(rawInstructions.get(i));
         }
         return routineSourceCode;
     }

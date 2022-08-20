@@ -102,4 +102,14 @@ public class RawInstruction implements Comparable{
         }
         return RoutineUtil.findRoutineNameForPushGo(rawInstructions, this);
     }
+
+    public String printInstructionInfo() {
+        return String.format("%s: \t\t\t in: [%s], \t unused registers: {%s}",
+                getRawInstruction(),
+                this.subroutine,
+                //this.possiblePrecedingInstruction.stream().map(RawInstruction::getRawInstruction).toList(),
+                //this.possibleNextInstructions.stream().map(RawInstruction::getRawInstruction).toList(),
+                this.unusedRegisters
+        );
+    }
 }

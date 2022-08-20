@@ -14,8 +14,8 @@ public interface Pipeline {
             new SubroutineLabelingPhaseImpl(),
             new GraphConstructionPhaseImpl(),
             new RegisterUsagesPhaseImpl(),
-            new PatternPhaseImpl(),
-            new SwapPhaseImpl()
+            new PatternPhaseImpl()
+//            new SwapPhaseImpl()
     );
 
     List<List<RawInstruction>> run(List<RawInstruction> rawInstructions);

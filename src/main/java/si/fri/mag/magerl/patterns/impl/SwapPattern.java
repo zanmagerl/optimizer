@@ -104,7 +104,7 @@ public class SwapPattern implements Pattern {
     }
 
     private boolean isSwapBackAndUnused(List<RawInstruction> rawInstructions, Integer index, Instruction firstInstruction) {
-        for (int j = index ; rawInstructions.get(j).getInstruction().getOpCode() != POP; j++) {
+        for (int j = index ; !rawInstructions.get(j).isPseudoInstruction(); j++) {
             Instruction instruction = rawInstructions.get(j).getInstruction();
             if (instruction.hasLabel()) {
                 return false;

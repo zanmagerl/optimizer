@@ -57,7 +57,7 @@ public class PutPattern implements Pattern {
      * Recursively find if subroutine has another call instruction after this one: method checks all possible paths (for branches it assumes both possibilities)
      */
     private boolean isThereAnotherSubroutineCallInstruction(RawInstruction rawInstruction) {
-        if (rawInstruction.getInstruction().getOpCode() == POP) {
+        if (rawInstruction.isPseudoInstruction()) {
             return false;
         }
         if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode && InstructionOpCode.isSubroutineInstructionOpCode((InstructionOpCode) rawInstruction.getInstruction().getOpCode())) {

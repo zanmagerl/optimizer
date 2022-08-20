@@ -36,7 +36,7 @@ public class GraphConstructionPhaseImpl implements Phase {
              * Let's cover all instructions inside specific routine -> jumps are "probably" always contained inside one routine
              */
             int i;
-            for (i = rawInstructions.indexOf(firstRoutineInstruction)+1; rawInstructions.get(i).getInstruction().getOpCode() != POP ; i++) {
+            for (i = rawInstructions.indexOf(firstRoutineInstruction)+1; !rawInstructions.get(i).isPseudoInstruction() ; i++) {
                 if (rawInstructions.get(i-1).getInstruction() != null && rawInstructions.get(i-1).getInstruction().getOpCode() != JMP) {
                     rawInstructions.get(i).addPredecessor(rawInstructions.get(i-1));
                     rawInstructions.get(i-1).addNextInstruction(rawInstructions.get(i));
@@ -65,7 +65,7 @@ public class GraphConstructionPhaseImpl implements Phase {
             //if (routine.equals("main")) continue;
             RawInstruction firstRoutineInstruction = RoutineUtil.routineMapping.get(routine);
             int i = rawInstructions.indexOf(firstRoutineInstruction);
-            for (; rawInstructions.get(i).getInstruction().getOpCode() != POP; i++) { }
+            for (; !rawInstructions.get(i).isPseudoInstruction(); i++) { }
             rawInstructions.get(i).addPredecessor(rawInstructions.get(i-1));
             rawInstructions.get(i-1).addNextInstruction(rawInstructions.get(i));
             // We use every call of the subroutine and add them as possible next instructions for POP
