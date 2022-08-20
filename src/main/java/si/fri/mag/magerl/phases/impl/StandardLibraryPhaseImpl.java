@@ -32,7 +32,9 @@ public class StandardLibraryPhaseImpl implements Phase {
         }
         wasAlreadyRun = true;
         List<RawInstruction> withPrintChar = replacePrintChar(rawInstructions);
-        return addMain(withPrintChar);
+        List<RawInstruction> withMain = addMain(withPrintChar);
+        log.info("Baseline number of instructions {}", withMain.size());
+        return withMain;
     }
 
     private List<RawInstruction> replacePrintChar(List<RawInstruction> rawInstructions) {
@@ -66,7 +68,7 @@ public class StandardLibraryPhaseImpl implements Phase {
     }
 
     private List<RawInstruction> loadSubprogram(Subprogram subprogram){
-        log.info(subprogram.name + FILE_EXTENSION);
+        log.debug(subprogram.name + FILE_EXTENSION);
         try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(subprogram.name + FILE_EXTENSION)) {
             return FileUtil.readProgram(inputStream);
         } catch (IOException e) {

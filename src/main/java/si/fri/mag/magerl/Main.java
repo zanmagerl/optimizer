@@ -25,7 +25,6 @@ public class Main {
         File file = new File(programName);
         try {
             List<RawInstruction> rawInstructions = FileUtil.readProgram(new FileInputStream(file));
-            log.info("Number of instruction: {}", rawInstructions.size());
             LinearPipelineImpl linearPipelineImpl = new LinearPipelineImpl();
             List<List<RawInstruction>> optimizedCodes = linearPipelineImpl.run(rawInstructions);
             log.info("Number of instructions in the optimized code: {}", optimizedCodes.get(optimizedCodes.size()-1).size());
