@@ -80,8 +80,9 @@ public class UnusedRegisterPattern implements Pattern {
             if (InstructionOpCode.isArithmeticInstructionOpCode((InstructionOpCode) firstInstruction.getOpCode()) && secondInstruction.getOpCode() == SET) {
                 if (Objects.equals(firstInstruction.getFirstOperand(), secondInstruction.getSecondOperand()) && RegisterUtil.isUnusedAfterInstruction(firstInstruction.getFirstOperand(), rawInstructions.get(i+1))) {
                     patternUsages.add(rawInstructions.get(i).getId());
+                    log.info("{}", rawInstructions.get(i+2).printInstructionInfo());
                     if (optimizationDecider.test(rawInstructions.get(i).getId())) {
-                        log.debug("Combining instructions {} and {}", rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i + 1).getRawInstruction());
+                        log.info("Combining instructions {} and {}", rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i + 1).getRawInstruction());
                         rawInstructions.get(i).setInstruction(firstInstruction.toBuilder()
                                 .firstOperand(secondInstruction.getFirstOperand())
                                 .build());

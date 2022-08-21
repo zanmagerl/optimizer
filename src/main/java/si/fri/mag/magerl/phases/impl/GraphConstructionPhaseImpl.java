@@ -65,7 +65,12 @@ public class GraphConstructionPhaseImpl implements Phase {
             //if (routine.equals("main")) continue;
             RawInstruction firstRoutineInstruction = RoutineUtil.routineMapping.get(routine);
             int i = rawInstructions.indexOf(firstRoutineInstruction);
-            for (; !rawInstructions.get(i).isPseudoInstruction(); i++) { }
+            for (; !rawInstructions.get(i).isPseudoInstruction(); i++) {
+                if (rawInstructions.get(i).getInstruction().getOpCode() == POP) {
+                    rawInstructions.get(i).getPossibleNextInstructions().remove(rawInstructions.get(i+1));
+                    rawInstructions.get(i+1).getPossiblePrecedingInstruction().remove(rawInstructions.get(i));
+                }
+            }
             rawInstructions.get(i).addPredecessor(rawInstructions.get(i-1));
             rawInstructions.get(i-1).addNextInstruction(rawInstructions.get(i));
             // We use every call of the subroutine and add them as possible next instructions for POP

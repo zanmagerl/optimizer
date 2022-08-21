@@ -104,11 +104,11 @@ public class RawInstruction implements Comparable{
     }
 
     public String printInstructionInfo() {
-        return String.format("%s: \t\t\t in: [%s], \t unused registers: {%s}",
+        return String.format("%s: \t\t\t in: [%s], \t prev: {%s}, \t next: {%s}, \t unused registers: {%s}",
                 getRawInstruction(),
                 this.subroutine,
-                //this.possiblePrecedingInstruction.stream().map(RawInstruction::getRawInstruction).toList(),
-                //this.possibleNextInstructions.stream().map(RawInstruction::getRawInstruction).toList(),
+                this.possiblePrecedingInstruction.stream().map(RawInstruction::getRawInstruction).toList(),
+                this.possibleNextInstructions.stream().map(RawInstruction::getRawInstruction).toList(),
                 this.unusedRegisters
         );
     }

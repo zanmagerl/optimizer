@@ -47,9 +47,6 @@ public class RegisterUsagesPhaseImpl implements Phase {
         if (Objects.equals(RoutineUtil.routineMapping.get(routine).getId(), iterInstruction.getId())) {
             return;
         }
-        if (iterInstruction.getRawInstruction().contains("CMP $5,$12,$6")) {
-            log.info("{} {} {}", iterInstruction.getUnusedRegisters(), currentlyUnusedRegisters, fromInstruction.getUnusedRegisters());
-        }
         /**
          * Here we now go and assume first that all registers and free and then decide depending if it is a write or read instruction
          */
@@ -71,9 +68,7 @@ public class RegisterUsagesPhaseImpl implements Phase {
 
         }
         iterInstruction.addUnusedRegisters(new ArrayList<>(new ArrayList<>(currentlyUnusedRegisters).stream().sorted().toList()));
-        if (iterInstruction.getRawInstruction().contains("BN $5,L:32")) {
-            log.info("BN $5,L:32 {} {} {}", iterInstruction.getUnusedRegisters(), currentlyUnusedRegisters, fromInstruction.getUnusedRegisters());
-        }
+
         if (memo.containsKey(iterInstruction)) {
             memo.put(iterInstruction, new HashSet<>(iterInstruction.getUnusedRegisters()));
         } else if (fromInstruction != null){
