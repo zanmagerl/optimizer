@@ -74,6 +74,9 @@ public class Instruction {
         if (InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) this.opCode)) {
             return false;
         }
+        if (InstructionOpCode.isBranchInstructionOpCode((InstructionOpCode) this.opCode)) {
+            return false;
+        }
         return Objects.equals(this.firstOperand, register);
     }
 

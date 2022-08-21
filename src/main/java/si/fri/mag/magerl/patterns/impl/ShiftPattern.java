@@ -7,6 +7,7 @@ import si.fri.mag.magerl.models.opcode.PseudoOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
+import si.fri.mag.magerl.utils.RegisterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,7 @@ public class ShiftPattern implements Pattern {
             }
             processedInstructions.add(rawInstructions.get(i));
             if (isPotentiallyUselessShiftBlock(rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
-                if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) rawInstructions.get(i).getInstruction().getOpCode())
-                        && Objects.equals(rawInstructions.get(i).getInstruction().getFirstOperand(), rawInstructions.get(i+1).getInstruction().getFirstOperand())) {
+                if (wasRegisterLoadedBeforeShifting(rawInstructions.get(i), rawInstructions.get(i+1).getInstruction().getFirstOperand())) {
                     patternUsages.add(rawInstructions.get(i).getId());
                     if (optimizationDecider.test(rawInstructions.get(i).getId())) {
                         log.debug("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
@@ -104,8 +104,28 @@ public class ShiftPattern implements Pattern {
                 && Objects.equals(firstInstruction.getInstruction().getThirdOperand(), secondInstruction.getInstruction().getThirdOperand());
     }
 
-    private boolean couldReplaceShiftBlockWithSet(RawInstruction firstInstruction, RawInstruction secondInstruction) {
-
-        return false;
+    public boolean wasRegisterLoadedBeforeShifting(RawInstruction rawInstruction, String register) {
+        if (rawInstruction.isPseudoInstruction()) {
+            return false;
+        }
+        if (rawInstruction.getInstruction().getOpCode() instanceof PseudoOpCode) {
+            boolean wasLoaded = true;
+            for (RawInstruction instruction : rawInstruction.getPossiblePrecedingInstruction()) {
+                wasLoaded &= wasRegisterLoadedBeforeShifting(instruction, register);
+            }
+            return wasLoaded;
+        }
+        if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) rawInstruction.getInstruction().getOpCode()) && Objects.equals(rawInstruction.getInstruction().getFirstOperand(), register)) {
+            return true;
+        }
+        if (rawInstruction.getInstruction().isWrittenToRegister(register)) {
+            return false;
+        }
+        boolean wasLoaded = true;
+        for (RawInstruction instruction : rawInstruction.getPossiblePrecedingInstruction()) {
+            wasLoaded &= wasRegisterLoadedBeforeShifting(instruction, register);
+        }
+        return wasLoaded;
     }
+
 }
