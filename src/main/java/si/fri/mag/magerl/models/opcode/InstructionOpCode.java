@@ -145,6 +145,10 @@ public enum InstructionOpCode implements OpCode {
             STB, STW, STT, STO, STBU, STWU, STTU, STOU
     );
 
+    private static final List<InstructionOpCode> LOAD_INSTRUCTIONS = List.of(
+            LDB, LDW, LDT, LDO, LDBU, LDWU, LDTU, LDOU
+    );
+
     private static final List<InstructionOpCode> ARITHMETIC_INSTRUCTIONS = List.of(
             ADD, SUB, MUL, DIV, ADDU, SUBU, MULU, DIVU
     );
@@ -155,6 +159,10 @@ public enum InstructionOpCode implements OpCode {
 
     public static boolean isSignedLoadInstructionOpCode(InstructionOpCode instructionOpCode) {
         return instructionOpCode == LDB || instructionOpCode == LDW || instructionOpCode == LDT || instructionOpCode == LDO;
+    }
+
+    public static boolean isLoadInstructionOpCode(InstructionOpCode instructionOpCode) {
+        return LOAD_INSTRUCTIONS.contains(instructionOpCode);
     }
 
     public static boolean isBranchInstructionOpCode(InstructionOpCode instructionOpCode) {

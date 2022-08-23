@@ -3,6 +3,7 @@ package si.fri.mag.magerl.utils;
 import lombok.experimental.UtilityClass;
 import si.fri.mag.magerl.models.RawInstruction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,10 @@ import java.util.Map;
 public class RegisterUtil {
 
     public Map<String, Map<RawInstruction, List<String>>> availableRegisters = new HashMap<>();
+
+    public List<Integer> usedGlobalRegisters = new ArrayList<>(List.of(
+            255, 254, 253
+    ));
 
     public static boolean isRegister(String register) {
         return register != null && register.startsWith("$") && extractRegister(register) >= 0 && extractRegister(register) < 256;
@@ -41,5 +46,11 @@ public class RegisterUtil {
             }
         }
         return true;
+    }
+
+    public String getAvailableGlobalRegister() {
+        Integer availableRegister = usedGlobalRegisters.stream().min(Integer::compareTo).get() - 1;
+        usedGlobalRegisters.add(availableRegister);
+        return "$" + availableRegister;
     }
 }

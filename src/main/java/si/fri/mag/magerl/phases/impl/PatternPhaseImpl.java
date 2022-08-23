@@ -25,7 +25,8 @@ public class PatternPhaseImpl implements Phase {
             new PutPattern(),
             new CmpPattern(),
             new SwapPattern(),
-            new UnusedRegisterPattern()
+            new UnusedRegisterPattern(),
+            new UnusedStoreInstructionPattern()
     );
 
     private final Metric metric = new AbsoluteMetric();
