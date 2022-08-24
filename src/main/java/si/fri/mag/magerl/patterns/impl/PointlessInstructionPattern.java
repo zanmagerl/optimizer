@@ -7,6 +7,7 @@ import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
+import si.fri.mag.magerl.utils.RegisterUtil;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -100,7 +101,8 @@ public class PointlessInstructionPattern implements Pattern {
                 && secondInstruction.getInstruction().getOpCode() == CSN
                 && Objects.equals(firstInstruction.getInstruction().getFirstOperand(), secondInstruction.getInstruction().getThirdOperand())
                 && Objects.equals(firstInstruction.getInstruction().getSecondOperand(), secondInstruction.getInstruction().getFirstOperand())
-                && Objects.equals(secondInstruction.getInstruction().getFirstOperand(), secondInstruction.getInstruction().getSecondOperand());
+                && Objects.equals(secondInstruction.getInstruction().getFirstOperand(), secondInstruction.getInstruction().getSecondOperand())
+                && !RegisterUtil.isGlobalRegister(firstInstruction.getInstruction().getFirstOperand());
     }
 
     private RawInstruction findWrittenInstruction(RawInstruction iterInstruction, String register) {

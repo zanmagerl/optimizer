@@ -6,9 +6,7 @@ print_char	IS @
         SUBU $254,$254,16
         STOU $253,$254,8
         ADDU $253,$254,16
-        SET	$2,$0
         GETA	$1,Buffer
-        SET		$0,$2
         STB		$0,$1,0
         SET		$255,$1
         TRAP	0,Fputs,StdOut

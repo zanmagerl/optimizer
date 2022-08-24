@@ -76,7 +76,7 @@ public class SwapPattern implements Pattern {
                             rawInstructions.get(i + 1).getInstruction().changeOperand(instruction.getFirstOperand(), instruction.getSecondOperand());
                             String substituteRegister = null;
                             int j;
-                            for (j = i + 2; !rawInstructions.get(j).getInstruction().isTwinSwapInstruction(instruction); j++) {
+                            for (j = i + 2; !rawInstructions.get(j).isPseudoInstruction() && !rawInstructions.get(j).getInstruction().isTwinSwapInstruction(instruction); j++) {
                                 if (rawInstructions.get(j).getInstruction().usesRegister(instruction.getFirstOperand())) {
                                     log.debug("Modify instruction: {} {} -> {}", rawInstructions.get(j).getRawInstruction(), instruction.getFirstOperand(), instruction.getSecondOperand());
                                     rawInstructions.get(j).getInstruction().changeOperand(instruction.getFirstOperand(), instruction.getSecondOperand());

@@ -25,7 +25,7 @@ public class RawInstruction implements Comparable{
     ArrayList<String> unusedRegisters = new ArrayList<>();
 
     public void addUnusedRegisters(ArrayList<String> unusedRegisters) {
-        if (this.unusedRegisters.isEmpty()) {
+        if (this.unusedRegisters == null || this.unusedRegisters.isEmpty()) {
             this.unusedRegisters = unusedRegisters;
         } else {
           this.unusedRegisters.retainAll(new ArrayList<>(unusedRegisters));

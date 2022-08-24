@@ -10,11 +10,11 @@ public interface Pipeline {
 
     List<Phase> phases = List.of(
             new StandardLibraryPhaseImpl(),
-            new CleaningPhaseImpl(),
-            new SubroutineLabelingPhaseImpl(),
-            new GraphConstructionPhaseImpl(),
-            new RegisterUsagesPhaseImpl(),
-            new PatternPhaseImpl()
+            new CleaningPhaseImpl()
+//            new SubroutineLabelingPhaseImpl(),
+//            new GraphConstructionPhaseImpl(),
+//            new RegisterUsagesPhaseImpl(),
+//            new PatternPhaseImpl()
 //            new SwapPhaseImpl()
     );
 

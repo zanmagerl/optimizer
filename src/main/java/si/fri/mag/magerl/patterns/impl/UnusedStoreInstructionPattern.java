@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import si.fri.mag.magerl.models.Instruction;
 import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
-import si.fri.mag.magerl.models.opcode.PseudoOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.phases.impl.GraphConstructionPhaseImpl;
 import si.fri.mag.magerl.utils.RegisterUtil;
@@ -20,12 +19,13 @@ public class UnusedStoreInstructionPattern implements Pattern {
 
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
-//        if (1==1) return rawInstructions;
+        //if (1==1) return rawInstructions;
         if (cannotBeUsed(rawInstructions)) return rawInstructions;
         rawInstructions = new GraphConstructionPhaseImpl().visit(rawInstructions);
 
 
         for (String routine : RoutineUtil.routineMapping.keySet()) {
+            offsetToRegisterMapping.clear();
             int numberOfNeededRegisters = -1;
             String pushXRegister = "$0";
             String oldMax = "$0";
@@ -34,16 +34,9 @@ public class UnusedStoreInstructionPattern implements Pattern {
                 int i = rawInstructions.indexOf(RoutineUtil.routineMapping.get(routine));
                 for (; !rawInstructions.get(i).isPseudoInstruction(); i++) {
                     RawInstruction currentInstruction = rawInstructions.get(i);
-                    if (currentInstruction.isPseudoInstruction()) {
-                        numberOfNeededRegisters = -1;
-                        pushXRegister = "$0";
-                        continue;
-                    }
                     // We need to reset stack pointer mappings to global registers
                     if (Objects.equals(RoutineUtil.routineMapping.get(currentInstruction.getSubroutine()), currentInstruction)) {
-                        offsetToRegisterMapping.clear();
                         numberOfNeededRegisters = findNumberOfNeededRegisters(rawInstructions, currentInstruction.getSubroutine());
-                        if (Objects.equals(currentInstruction.getSubroutine(), "place")) log.info("{}", numberOfNeededRegisters);
                         pushXRegister = findPushXRegister(rawInstructions, currentInstruction.getSubroutine());
                         if (step == 0) oldMax = pushXRegister;
                     }
@@ -261,8 +254,15 @@ public class UnusedStoreInstructionPattern implements Pattern {
             }
             if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
                     && InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) rawInstruction.getInstruction().getOpCode())
-                    && Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$$254")
+                    && Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$254")
                     && Objects.equals(rawInstruction.getInstruction().getThirdOperand(), "0")) {
+                return true;
+            }
+            if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
+                    && Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$253")
+                    && !rawInstruction.getPossibleNextInstructions().isEmpty()
+                    && rawInstruction.getPossibleNextInstructions().get(0).getUnusedRegisters().contains(rawInstruction.getInstruction().getFirstOperand())
+            ) {
                 return true;
             }
         }
