@@ -1,6 +1,7 @@
 package si.fri.mag.magerl.utils;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import si.fri.mag.magerl.models.RawInstruction;
 
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @UtilityClass
 public class RegisterUtil {
 
@@ -52,5 +54,12 @@ public class RegisterUtil {
         Integer availableRegister = usedGlobalRegisters.stream().min(Integer::compareTo).get() - 1;
         usedGlobalRegisters.add(availableRegister);
         return "$" + availableRegister;
+    }
+
+    public boolean isFirstLocalRegisterBiggerThanSecond(String r1, String r2) {
+        if (r1 == null) return false;
+        if (!isRegister(r1)) return false;
+        if (isGlobalRegister(r1)) return false;
+        return extractRegister(r1).compareTo(extractRegister(r2)) > 0;
     }
 }
