@@ -11,7 +11,6 @@ import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
@@ -20,6 +19,7 @@ public class UnusedStoreInstructionPattern implements Pattern {
 
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
+        if (1==1) return rawInstructions;
         rawInstructions = new GraphConstructionPhaseImpl().visit(rawInstructions);
         for (int i = 0; i < rawInstructions.size(); i++) {
             RawInstruction currentInstruction = rawInstructions.get(i);
@@ -54,9 +54,35 @@ public class UnusedStoreInstructionPattern implements Pattern {
                             RawInstruction loadRegister = useRegisterToRegisterInsteadOfStack(extractedLoadBlock.get(n).getInstruction().getFirstOperand(), globalRegister);
                             rawInstructions.add(blockStart, loadRegister);
                             log.info("Change instruction {} -> {}", extractedLoadBlock.get(n).getRawInstruction(), rawInstructions.get(blockStart).getRawInstruction());
+                            if (extractedLoadBlock.get(n).getInstruction().getOpCode() == LDB) {
+                                rawInstructions.add(blockStart+1, RawInstruction.builder()
+                                        .instruction(Instruction.builder()
+                                                .opCode(AND)
+                                                .firstOperand(loadRegister.getInstruction().getFirstOperand())
+                                                .secondOperand(loadRegister.getInstruction().getFirstOperand())
+                                                .thirdOperand("#ff")
+                                                .build())
+                                        .build());
+                            } else if (extractedLoadBlock.get(n).getInstruction().getOpCode() == LDT) {
+                                rawInstructions.add(blockStart+1, RawInstruction.builder()
+                                        .instruction(Instruction.builder()
+                                                .opCode(SLU)
+                                                .firstOperand(loadRegister.getInstruction().getFirstOperand())
+                                                .secondOperand(loadRegister.getInstruction().getFirstOperand())
+                                                .thirdOperand("32")
+                                                .build())
+                                        .build());
+                                rawInstructions.add(blockStart+2, RawInstruction.builder()
+                                        .instruction(Instruction.builder()
+                                                .opCode(SR)
+                                                .firstOperand(loadRegister.getInstruction().getFirstOperand())
+                                                .secondOperand(loadRegister.getInstruction().getFirstOperand())
+                                                .thirdOperand("32")
+                                                .build())
+                                        .build());
+                            }
                         }
                     }
-                    memo.clear();
                     log.info("\n");
                     rawInstructions = new GraphConstructionPhaseImpl().visit(rawInstructions);
                 }
@@ -95,76 +121,53 @@ public class UnusedStoreInstructionPattern implements Pattern {
         return null;
     }
 
-    private static final Map<RawInstruction, Boolean> memo = new HashMap<>();
-
     private static final Map<String, String> offsetToRegisterMapping = new HashMap<>();
 
     private List<RawInstruction> extractLoadBlock(RawInstruction iterInstruction, List<RawInstruction> rawInstructions, String offset, List<RawInstruction> lastAddressInstructions, RawInstruction originInstruction) {
-        if (memo.containsKey(iterInstruction)) return Collections.emptyList();
-        log.info("Offset {} at instruction: {} are {}", offset, iterInstruction.printInstructionInfo(), lastAddressInstructions.stream().map(RawInstruction::getRawInstruction).toList());
+
         List<RawInstruction> result = new ArrayList<>();
 
-        if (iterInstruction.isPseudoInstruction()) return Collections.emptyList();
+        for (int i = rawInstructions.indexOf(iterInstruction); !rawInstructions.get(i).isPseudoInstruction(); i++) {
+            iterInstruction = rawInstructions.get(i);
 
 
-        if (iterInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
-                && InstructionOpCode.isLoadInstructionOpCode((InstructionOpCode) iterInstruction.getInstruction().getOpCode())
-                && lastAddressInstructions.stream().map(in -> in.getInstruction().getFirstOperand()).toList().contains(iterInstruction.getInstruction().getSecondOperand())
-        ) {
-            RawInstruction lastSubuInstruction = lastAddressInstructions.get(lastAddressInstructions.stream().map(in -> in.getInstruction().getFirstOperand()).toList().indexOf(iterInstruction.getInstruction().getSecondOperand()));
-            if (lastSubuInstruction != null) result.add(lastSubuInstruction);
-            result.add(iterInstruction);
-        }
-        if (iterInstruction.getInstruction().getOpCode() == SUBU
-                && Objects.equals(iterInstruction.getInstruction().getSecondOperand(), "$253")
-                && Objects.equals(iterInstruction.getInstruction().getThirdOperand(), offset)) {
-            lastAddressInstructions.add(iterInstruction);
-        }
-        // We must stop when there is another write instruction to that register
-        else if (iterInstruction.getInstruction().getOpCode() instanceof  InstructionOpCode
-                && !lastAddressInstructions.isEmpty()
-                && lastAddressInstructions.stream().map(in -> iterInstruction.getInstruction().isWrittenToRegister(in.getInstruction().getFirstOperand())).reduce(Boolean::logicalOr).get()
-        ) {
-            lastAddressInstructions.remove(lastAddressInstructions.get(lastAddressInstructions.stream().map(in -> iterInstruction.getInstruction().isWrittenToRegister(in.getInstruction().getFirstOperand())).toList().lastIndexOf(true)));
-        }
-        // This makes sure that if we store another stuff on that Stack address, that it is used from the last write, not the first
-        if (iterInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
-                && InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) iterInstruction.getInstruction().getOpCode())) {
-            RawInstruction origin = findOriginInstruction(rawInstructions, iterInstruction, iterInstruction.getInstruction().getSecondOperand());
-            if (origin != null && Objects.equals(origin.getInstruction().getSecondOperand(), "$253") && Objects.equals(origin.getInstruction().getThirdOperand(), offset) &&
-            !Objects.equals(originInstruction, origin)) {
-                return result;
+            if (iterInstruction.isPseudoInstruction()) return Collections.emptyList();
+
+
+            if (iterInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
+                    && InstructionOpCode.isLoadInstructionOpCode((InstructionOpCode) iterInstruction.getInstruction().getOpCode())
+                    && lastAddressInstructions.stream().map(in -> in.getInstruction().getFirstOperand()).toList().contains(iterInstruction.getInstruction().getSecondOperand())
+            ) {
+                RawInstruction lastSubuInstruction = lastAddressInstructions.get(lastAddressInstructions.stream().map(in -> in.getInstruction().getFirstOperand()).toList().indexOf(iterInstruction.getInstruction().getSecondOperand()));
+                if (lastSubuInstruction != null) result.add(lastSubuInstruction);
+                result.add(iterInstruction);
             }
-        }
-
-        if (iterInstruction.getPossibleNextInstructions().isEmpty()) return result;
-        memo.put(iterInstruction, true);
-        for (RawInstruction nextInstruction : iterInstruction.getPossibleNextInstructions()) {
-            result.addAll(extractLoadBlock(nextInstruction, rawInstructions, offset, lastAddressInstructions, originInstruction));
-        }
-
-
-        /*
-        // Let's check that SUBU instruction is actually used in some load instruction
-        for (int i = 0; i < result.size(); i++) {
-            RawInstruction rawInstruction = result.get(i);
-            if (rawInstruction.getInstruction().getOpCode() == SUBU) {
-                boolean isForLoadInstruction = false;
-                for (int j = 0; j < result.size(); j++) {
-                    RawInstruction siterInstruction = result.get(j);
-                    if (siterInstruction.getInstruction().getOpCode() != SUBU) {
-                        if (Objects.equals(siterInstruction.getInstruction().getSecondOperand(), rawInstruction.getInstruction().getFirstOperand())) {
-                            isForLoadInstruction = true;
-                        }
-                    }
+            if (iterInstruction.getInstruction().getOpCode() == SUBU
+                    && Objects.equals(iterInstruction.getInstruction().getSecondOperand(), "$253")
+                    && Objects.equals(iterInstruction.getInstruction().getThirdOperand(), offset)) {
+                lastAddressInstructions.add(iterInstruction);
+            }
+            // We must stop when there is another write instruction to that register
+            else {
+                RawInstruction finalIterInstruction = iterInstruction;
+                if (iterInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
+                        && !lastAddressInstructions.isEmpty()
+                        && lastAddressInstructions.stream().map(in -> finalIterInstruction.getInstruction().isWrittenToRegister(in.getInstruction().getFirstOperand())).reduce(Boolean::logicalOr).get()
+                ) {
+                    RawInstruction finalIterInstruction1 = iterInstruction;
+                    lastAddressInstructions.remove(lastAddressInstructions.get(lastAddressInstructions.stream().map(in -> finalIterInstruction1.getInstruction().isWrittenToRegister(in.getInstruction().getFirstOperand())).toList().lastIndexOf(true)));
                 }
-                if (!isForLoadInstruction) {
-                    result.remove(rawInstruction);
-                    i = Math.max(0, i-1);
+            }
+            // This makes sure that if we store another stuff on that Stack address, that it is used from the last write, not the first
+            if (iterInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
+                    && InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) iterInstruction.getInstruction().getOpCode())) {
+                RawInstruction origin = findOriginInstruction(rawInstructions, iterInstruction, iterInstruction.getInstruction().getSecondOperand());
+                if (origin != null && Objects.equals(origin.getInstruction().getSecondOperand(), "$253") && Objects.equals(origin.getInstruction().getThirdOperand(), offset) &&
+                        !Objects.equals(originInstruction, origin)) {
+                    return result;
                 }
             }
         }
-         */
 
         return result;
     }
