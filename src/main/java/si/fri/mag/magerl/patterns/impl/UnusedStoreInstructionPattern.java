@@ -6,6 +6,8 @@ import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.phases.impl.GraphConstructionPhaseImpl;
+import si.fri.mag.magerl.phases.impl.RegisterUsagesPhaseImpl;
+import si.fri.mag.magerl.phases.impl.SubroutineLabelingPhaseImpl;
 import si.fri.mag.magerl.utils.RegisterUtil;
 import si.fri.mag.magerl.utils.RoutineUtil;
 
@@ -20,8 +22,11 @@ public class UnusedStoreInstructionPattern implements Pattern {
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         //if (1==1) return rawInstructions;
-        if (cannotBeUsed(rawInstructions)) return rawInstructions;
+        rawInstructions = new SubroutineLabelingPhaseImpl().visit(rawInstructions);
+        rawInstructions = new RegisterUsagesPhaseImpl().visit(rawInstructions);
         rawInstructions = new GraphConstructionPhaseImpl().visit(rawInstructions);
+        if (cannotBeUsed(rawInstructions)) return rawInstructions;
+
 
 
         for (String routine : RoutineUtil.routineMapping.keySet()) {
@@ -33,6 +38,7 @@ public class UnusedStoreInstructionPattern implements Pattern {
 
                 int i = rawInstructions.indexOf(RoutineUtil.routineMapping.get(routine));
                 for (; !rawInstructions.get(i).isPseudoInstruction(); i++) {
+
                     RawInstruction currentInstruction = rawInstructions.get(i);
                     // We need to reset stack pointer mappings to global registers
                     if (Objects.equals(RoutineUtil.routineMapping.get(currentInstruction.getSubroutine()), currentInstruction)) {
@@ -70,36 +76,6 @@ public class UnusedStoreInstructionPattern implements Pattern {
                                     RawInstruction loadRegister = useRegisterToRegisterInsteadOfStack(extractedLoadBlock.get(n).getInstruction().getFirstOperand(), substituteRegister);
                                     rawInstructions.add(blockStart, loadRegister);
                                     log.debug("Change instruction {} -> {}", extractedLoadBlock.get(n).getRawInstruction(), rawInstructions.get(blockStart).getRawInstruction());
-                                    /*
-                                    if (extractedLoadBlock.get(n).getInstruction().getOpCode() == LDB) {
-                                        rawInstructions.add(blockStart+1, RawInstruction.builder()
-                                                .instruction(Instruction.builder()
-                                                        .opCode(AND)
-                                                        .firstOperand(loadRegister.getInstruction().getFirstOperand())
-                                                        .secondOperand(loadRegister.getInstruction().getFirstOperand())
-                                                        .thirdOperand("#ff")
-                                                        .build())
-                                                .build());
-                                    } else if (extractedLoadBlock.get(n).getInstruction().getOpCode() == LDT) {
-                                        rawInstructions.add(blockStart+1, RawInstruction.builder()
-                                                .instruction(Instruction.builder()
-                                                        .opCode(SLU)
-                                                        .firstOperand(loadRegister.getInstruction().getFirstOperand())
-                                                        .secondOperand(loadRegister.getInstruction().getFirstOperand())
-                                                        .thirdOperand("32")
-                                                        .build())
-                                                .build());
-                                        rawInstructions.add(blockStart+2, RawInstruction.builder()
-                                                .instruction(Instruction.builder()
-                                                        .opCode(SR)
-                                                        .firstOperand(loadRegister.getInstruction().getFirstOperand())
-                                                        .secondOperand(loadRegister.getInstruction().getFirstOperand())
-                                                        .thirdOperand("32")
-                                                        .build())
-                                                .build());
-                                    }
-                                    */
-
                                 }
                             }
                             log.debug("\n");
@@ -123,8 +99,19 @@ public class UnusedStoreInstructionPattern implements Pattern {
                 }
             }
         }
+        List<RawInstruction> proccessedInstruction = new ArrayList<>();
+        for (RawInstruction rawInstruction : rawInstructions) {
+            if (rawInstruction.isPseudoInstruction()) {
+                proccessedInstruction.add(rawInstruction);
+                continue;
+            }
+            if (rawInstruction.getInstruction().usesRegister("$253") || rawInstruction.getInstruction().usesRegister("$254")) {
+                continue;
+            }
+            proccessedInstruction.add(rawInstruction);
+        }
 
-        return rawInstructions;
+        return proccessedInstruction;
     }
 
     private String increaseRegisterByValue(String register, int value) {
@@ -146,7 +133,7 @@ public class UnusedStoreInstructionPattern implements Pattern {
 
     private String findPushXRegister(List<RawInstruction> rawInstructions, String routine) {
         RawInstruction startInstruction = RoutineUtil.routineMapping.get(routine);
-        for (int i = rawInstructions.indexOf(startInstruction); !rawInstructions.get(i).isPseudoInstruction() ; i++) {
+        for (int i = rawInstructions.indexOf(startInstruction); i >= 0 && !rawInstructions.get(i).isPseudoInstruction() ; i++) {
             if (rawInstructions.get(i).getInstruction().getOpCode() instanceof InstructionOpCode && InstructionOpCode.isSubroutineInstructionOpCode((InstructionOpCode) rawInstructions.get(i).getInstruction().getOpCode())) {
                 return rawInstructions.get(i).getInstruction().getFirstOperand();
             }
@@ -242,26 +229,35 @@ public class UnusedStoreInstructionPattern implements Pattern {
         }
         return null;
     }
-
+    private static boolean patternUsed = false;
     /**
      * We can only use this pattern where there are no loading from memory in different subroutines.
      * We can use it in hanoi but not with quicksort, where elements are in memory.
      */
     private boolean cannotBeUsed(List<RawInstruction> rawInstructions) {
+        if (patternUsed) return true;
+        patternUsed = true;
         for (RawInstruction rawInstruction : rawInstructions) {
             if (rawInstruction.isPseudoInstruction()) {
                 continue;
             }
+            // Something is weird check this condition
             if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
                     && InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) rawInstruction.getInstruction().getOpCode())
-                    && Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$254")
-                    && Objects.equals(rawInstruction.getInstruction().getThirdOperand(), "0")) {
+                    && !Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$254")
+                    && !Objects.equals(rawInstruction.getInstruction().getThirdOperand(), "0")) {
                 return true;
             }
             if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
                     && Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$253")
                     && !rawInstruction.getPossibleNextInstructions().isEmpty()
                     && rawInstruction.getPossibleNextInstructions().get(0).getUnusedRegisters().contains(rawInstruction.getInstruction().getFirstOperand())
+            ) {
+                return true;
+            }
+            if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
+                    && Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$253")
+                    && RegisterUtil.extractRegister(findPushXRegister(rawInstructions, rawInstruction.getSubroutine())) <= RegisterUtil.extractRegister(rawInstruction.getInstruction().getFirstOperand())
             ) {
                 return true;
             }

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static si.fri.mag.magerl.config.BranchingConfig.BRANCHING_FACTOR;
-import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
 import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 
 @Slf4j
@@ -41,21 +40,6 @@ public class SwapPattern implements Pattern {
         return possibilities;
     }
 
-
-    private List<RawInstruction> removeUnusedRegisters(List<RawInstruction> rawInstructions) {
-        List<RawInstruction> processedInstructions = new ArrayList<>();
-
-
-
-        return processedInstructions;
-    }
-
-    /**
-     * This works well, but we need to fix problems with:
-     * SET $1,$0
-     * L:26 IS @ <- here something can jump
-     * SET $0,$1
-     */
     private List<RawInstruction> removeSwappingInstructions(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         List<RawInstruction> processedInstructions = new ArrayList<>();
         boolean wasPatternUsed = false;
@@ -112,6 +96,7 @@ public class SwapPattern implements Pattern {
             if (instruction.getOpCode() instanceof PseudoOpCode) continue;
 
             if (instruction.isTwinSwapInstruction(firstInstruction)) {
+                if (j == index) return false;
                 return true;
             }
             if (instruction.isWrittenToRegister(firstInstruction.getFirstOperand())) {

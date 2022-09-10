@@ -6,6 +6,8 @@ import si.fri.mag.magerl.models.RawInstruction;
 import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.models.opcode.PseudoOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
+import si.fri.mag.magerl.phases.impl.GraphConstructionPhaseImpl;
+import si.fri.mag.magerl.phases.impl.RegisterUsagesPhaseImpl;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
 import si.fri.mag.magerl.utils.RegisterUtil;
@@ -93,7 +95,23 @@ public class UnusedRegisterPattern implements Pattern {
                 }
             }
 
-            if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) firstInstruction.getOpCode()) && secondInstruction.getOpCode() == SET) {
+            if (firstInstruction.getOpCode() == SET && secondInstruction.getOpCode() instanceof InstructionOpCode && InstructionOpCode.isArithmeticInstructionOpCode((InstructionOpCode) secondInstruction.getOpCode())) {
+                if (Objects.equals(firstInstruction.getFirstOperand(), secondInstruction.getSecondOperand()) && RegisterUtil.isUnusedAfterInstruction(firstInstruction.getFirstOperand(), rawInstructions.get(i+1))) {
+                    patternUsages.add(rawInstructions.get(i).getId());
+                    if (optimizationDecider.test(rawInstructions.get(i).getId())) {
+                        log.debug("Combining instructions {} and {}", rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i + 1).getRawInstruction());
+                        rawInstructions.get(i).setInstruction(secondInstruction.toBuilder()
+                                .secondOperand(firstInstruction.getSecondOperand())
+                                .build());
+                        processedInstructions.add(rawInstructions.get(i));
+                        i++;
+                        wasPatternUsed = true;
+                        continue;
+                    }
+                }
+            }
+
+            if ((InstructionOpCode.isLoadInstructionOpCode((InstructionOpCode) firstInstruction.getOpCode()) ) && secondInstruction.getOpCode() == SET) {
                 if (Objects.equals(firstInstruction.getFirstOperand(), secondInstruction.getSecondOperand()) && RegisterUtil.isUnusedAfterInstruction(firstInstruction.getFirstOperand(), rawInstructions.get(i+1))) {
                     patternUsages.add(rawInstructions.get(i).getId());
                     if (optimizationDecider.test(rawInstructions.get(i).getId())) {
@@ -102,6 +120,22 @@ public class UnusedRegisterPattern implements Pattern {
                                 .firstOperand(secondInstruction.getFirstOperand())
                                 .build());
                         processedInstructions.add(rawInstructions.get(i));
+                        i++;
+                        wasPatternUsed = true;
+                        continue;
+                    }
+                }
+            }
+
+            if (firstInstruction.getOpCode() == SET  && secondInstruction.getOpCode() instanceof InstructionOpCode && (InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) secondInstruction.getOpCode()) )) {
+                if (Objects.equals(firstInstruction.getFirstOperand(), secondInstruction.getFirstOperand()) && RegisterUtil.isUnusedAfterInstruction(firstInstruction.getFirstOperand(), rawInstructions.get(i+1))) {
+                    patternUsages.add(rawInstructions.get(i).getId());
+                    if (optimizationDecider.test(rawInstructions.get(i).getId())) {
+                        log.debug("Combining instructions {} and {}", rawInstructions.get(i).getRawInstruction(), rawInstructions.get(i + 1).getRawInstruction());
+                        rawInstructions.get(i+1).setInstruction(secondInstruction.toBuilder()
+                                .firstOperand(firstInstruction.getSecondOperand())
+                                .build());
+                        processedInstructions.add(rawInstructions.get(i+1));
                         i++;
                         wasPatternUsed = true;
                         continue;
@@ -126,12 +160,12 @@ public class UnusedRegisterPattern implements Pattern {
             }
             /**
              * Removes stuff like that:
-             * SET $1,#a
+             * SETL $1,#a
              * ...
              * SET $3,$1
              * ...
              * ...
-             * SET $1,#sth
+             * SETL $1,#sth
              *
              * AND
              *
@@ -146,7 +180,7 @@ public class UnusedRegisterPattern implements Pattern {
                 if (returnedInstruction != null && returnedInstruction.getPossibleNextInstructions().get(0).getUnusedRegisters().contains(potentiallyUnusedRegister) && isUnusedBetween(rawInstructions.get(i), returnedInstruction, returnedInstruction.getInstruction().getFirstOperand())) {
                     patternUsages.add(rawInstructions.get(i).getId());
                     if (optimizationDecider.test(rawInstructions.get(i).getId())) {
-                        log.debug("{}, Combining instructions more far away {} and {}", rawInstructions.get(i).getSubroutine(), rawInstructions.get(i).getRawInstruction(), returnedInstruction.getRawInstruction());
+                        log.info("{}, Combining instructions more far away {} and {}", rawInstructions.get(i).getSubroutine(), rawInstructions.get(i).getRawInstruction(), returnedInstruction.getRawInstruction());
                         firstInstruction.setFirstOperand(returnedInstruction.getInstruction().getFirstOperand());
                         rawInstructions.remove(returnedInstruction);
                         wasPatternUsed = true;

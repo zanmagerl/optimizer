@@ -9,9 +9,7 @@ import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
 import si.fri.mag.magerl.utils.RegisterUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static si.fri.mag.magerl.config.BranchingConfig.BRANCHING_FACTOR;
@@ -103,8 +101,9 @@ public class ShiftPattern implements Pattern {
                 && secondInstruction.getUnusedRegisters().contains(firstInstruction.getInstruction().getSecondOperand())
                 && Objects.equals(firstInstruction.getInstruction().getThirdOperand(), secondInstruction.getInstruction().getThirdOperand());
     }
-
+    private Map<RawInstruction, Boolean> memo = new HashMap<>();
     public boolean wasRegisterLoadedBeforeShifting(RawInstruction rawInstruction, String register) {
+        if (memo.containsKey(rawInstruction)) return memo.get(rawInstruction);
         if (rawInstruction.isPseudoInstruction()) {
             return false;
         }
@@ -113,6 +112,7 @@ public class ShiftPattern implements Pattern {
             for (RawInstruction instruction : rawInstruction.getPossiblePrecedingInstruction()) {
                 wasLoaded &= wasRegisterLoadedBeforeShifting(instruction, register);
             }
+            memo.put(rawInstruction, wasLoaded);
             return wasLoaded;
         }
         if (InstructionOpCode.isSignedLoadInstructionOpCode((InstructionOpCode) rawInstruction.getInstruction().getOpCode()) && Objects.equals(rawInstruction.getInstruction().getFirstOperand(), register)) {
@@ -125,6 +125,7 @@ public class ShiftPattern implements Pattern {
         for (RawInstruction instruction : rawInstruction.getPossiblePrecedingInstruction()) {
             wasLoaded &= wasRegisterLoadedBeforeShifting(instruction, register);
         }
+        memo.put(rawInstruction, wasLoaded);
         return wasLoaded;
     }
 

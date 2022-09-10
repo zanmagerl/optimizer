@@ -1,6 +1,7 @@
 package si.fri.mag.magerl.pipeline;
 
 import si.fri.mag.magerl.models.RawInstruction;
+import si.fri.mag.magerl.patterns.impl.SwapPattern;
 import si.fri.mag.magerl.phases.Phase;
 import si.fri.mag.magerl.phases.impl.*;
 
@@ -14,7 +15,7 @@ public interface Pipeline {
 //            new SubroutineLabelingPhaseImpl(),
 //            new GraphConstructionPhaseImpl(),
 //            new RegisterUsagesPhaseImpl(),
-//            new PatternPhaseImpl()
+//            new PatternPhaseImpl(),
 //            new SwapPhaseImpl()
     );
 
