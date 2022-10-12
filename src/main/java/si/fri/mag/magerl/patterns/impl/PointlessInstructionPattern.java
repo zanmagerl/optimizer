@@ -8,6 +8,7 @@ import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
 import si.fri.mag.magerl.utils.RegisterUtil;
+import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -18,7 +19,11 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 @Slf4j
 public class PointlessInstructionPattern implements Pattern {
 
-    private final List<Integer> patternUsages = new ArrayList<>();
+    public final List<Integer> patternUsages = new ArrayList<>();
+
+    public final Map<String, Integer> patternsUsed = new HashMap<>();
+
+    public final Map<String, Integer> patternsUsedAbs = new HashMap<>();
 
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
@@ -33,6 +38,7 @@ public class PointlessInstructionPattern implements Pattern {
             Instruction instruction = rawInstruction.getInstruction();
             if (uselessSetInstruction(instruction)) {
                 patternUsages.add(rawInstruction.getId());
+                patternsUsed.put(rawInstruction.getSubroutine(), patternsUsed.getOrDefault(rawInstruction.getSubroutine(), 0) + 1);
                 if (optimizationDecider.test(rawInstruction.getId())) {
                     log.debug("Useless instruction: {}", instruction);
                     wasAlreadyUsed = true;
@@ -41,15 +47,16 @@ public class PointlessInstructionPattern implements Pattern {
             }
             if (uselessSWYMInstruction(instruction)){
                 patternUsages.add(rawInstruction.getId());
+                patternsUsed.put(rawInstruction.getSubroutine(), patternsUsed.getOrDefault(rawInstruction.getSubroutine(), 0) + 1);
                 if (optimizationDecider.test(rawInstruction.getId())) {
                     log.debug("Useless instruction: {}", instruction);
                     wasAlreadyUsed = true;
                     continue;
                 }
             }
-            // TODO Check for usages of register in the following instructions
             if (instruction.getOpCode() == NEG && uselessAbsoluteValue(rawInstructions, rawInstruction)) {
                 patternUsages.add(rawInstruction.getId());
+                patternsUsedAbs.put(rawInstruction.getSubroutine(), patternsUsedAbs.getOrDefault(rawInstruction.getSubroutine(), 0) + 1);
                 if (optimizationDecider.test(rawInstruction.getId())) {
                     log.debug("Useless absolute value block: {}-{}", rawInstruction, rawInstructions.get(i+1));
                     wasAlreadyUsed = true;
@@ -60,6 +67,9 @@ public class PointlessInstructionPattern implements Pattern {
 
             processedInstructions.add(rawInstruction);
         }
+        log.info("Pointless pattern: {}", patternsUsed.keySet().stream().filter(key -> RoutineUtil.routineMapping.containsKey(key)).map(patternsUsed::get).mapToInt(Integer::intValue).sum());
+        log.info("Absolute value pattern: {}", patternsUsedAbs.keySet().stream().filter(key -> RoutineUtil.routineMapping.containsKey(key)).map(patternsUsedAbs::get).mapToInt(Integer::intValue).sum());
+
         return processedInstructions;
     }
 

@@ -7,6 +7,7 @@ import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
+import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +22,8 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.POP;
 @Slf4j
 public class PutPattern implements Pattern {
 
-    private final List<Integer> patternUsages = new ArrayList<>();
+    public final List<Integer> patternUsages = new ArrayList<>();
+    public final Map<String, Integer> patternsUsed = new HashMap<>();
 
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
@@ -38,6 +40,8 @@ public class PutPattern implements Pattern {
                 if (instruction.getFirstOperand().equals("rJ")) {
                     if (isThereAnotherSubroutineCallInstruction(rawInstruction)) {
                         patternUsages.add(rawInstruction.getId());
+                        patternsUsed.put(rawInstruction.getSubroutine(), patternsUsed.getOrDefault(rawInstruction.getSubroutine(), 0) + 1);
+
                         if (optimizationDecider.test(rawInstruction.getId())) {
                             log.debug("Remove PUT instruction {}", rawInstruction);
                             wasPatternUsed = true;
@@ -48,6 +52,8 @@ public class PutPattern implements Pattern {
             }
             processedInstructions.add(rawInstruction);
         }
+        log.info("PUT pattern: {}", patternsUsed.keySet().stream().filter(key -> RoutineUtil.routineMapping.containsKey(key)).map(patternsUsed::get).mapToInt(Integer::intValue).sum());
+
         return processedInstructions;
     }
 

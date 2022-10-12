@@ -19,6 +19,8 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 @Slf4j
 public class UnusedStoreInstructionPattern implements Pattern {
 
+    public final Map<String, Integer> patternsUsed = new HashMap<>();
+
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
         //if (1==1) return rawInstructions;
@@ -30,6 +32,7 @@ public class UnusedStoreInstructionPattern implements Pattern {
 
 
         for (String routine : RoutineUtil.routineMapping.keySet()) {
+            patternsUsed.put(routine, patternsUsed.getOrDefault(routine, 0) + 1);
             offsetToRegisterMapping.clear();
             int numberOfNeededRegisters = -1;
             String pushXRegister = "$0";
@@ -105,11 +108,13 @@ public class UnusedStoreInstructionPattern implements Pattern {
                 proccessedInstruction.add(rawInstruction);
                 continue;
             }
+            // WATCH OUT
             if (rawInstruction.getInstruction().usesRegister("$253") || rawInstruction.getInstruction().usesRegister("$254")) {
                 continue;
             }
             proccessedInstruction.add(rawInstruction);
         }
+        log.info("Stack pointers pattern: {}", patternsUsed.keySet().stream().filter(key -> RoutineUtil.routineMapping.containsKey(key)).map(patternsUsed::get).mapToInt(Integer::intValue).sum());
 
         return proccessedInstruction;
     }
@@ -243,9 +248,9 @@ public class UnusedStoreInstructionPattern implements Pattern {
             }
             // Something is weird check this condition
             if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
-                    && InstructionOpCode.isStoreInstructionOpCode((InstructionOpCode) rawInstruction.getInstruction().getOpCode())
                     && !Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$254")
-                    && !Objects.equals(rawInstruction.getInstruction().getThirdOperand(), "0")) {
+                    && rawInstruction.getInstruction().getThirdOperand() != null
+                    && rawInstruction.getInstruction().getThirdOperand().contains("$")) {
                 return true;
             }
             if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
@@ -257,6 +262,7 @@ public class UnusedStoreInstructionPattern implements Pattern {
             }
             if (rawInstruction.getInstruction().getOpCode() instanceof InstructionOpCode
                     && Objects.equals(rawInstruction.getInstruction().getSecondOperand(), "$253")
+                    && RegisterUtil.extractRegister(findPushXRegister(rawInstructions, rawInstruction.getSubroutine())) != 0
                     && RegisterUtil.extractRegister(findPushXRegister(rawInstructions, rawInstruction.getSubroutine())) <= RegisterUtil.extractRegister(rawInstruction.getInstruction().getFirstOperand())
             ) {
                 return true;

@@ -7,9 +7,11 @@ import si.fri.mag.magerl.models.opcode.InstructionOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
+import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static si.fri.mag.magerl.config.BranchingConfig.BRANCHING_FACTOR;
 import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
@@ -18,7 +20,9 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 @Slf4j
 public class CmpPattern implements Pattern {
 
-    private final List<Integer> patternUsages = new ArrayList<>();
+    public final List<Integer> patternUsages = new ArrayList<>();
+
+    public final Map<String, Integer> patternsUsed = new HashMap<>();
 
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
@@ -36,6 +40,7 @@ public class CmpPattern implements Pattern {
                     if (branchInstruction != null && InstructionOpCode.isBranchInstructionOpCode((InstructionOpCode) branchInstruction.getOpCode()) && Objects.equals(instruction.getFirstOperand(), branchInstruction.getFirstOperand())) {
                         if (notReadBeforeWrittenAgain(rawInstructions, i+1, branchInstruction.getFirstOperand())){
                             patternUsages.add(rawInstructions.get(i).getId());
+                            patternsUsed.put(rawInstructions.get(i).getSubroutine(), patternsUsed.getOrDefault(rawInstructions.get(i).getSubroutine(), 0) + 1);
                             if (optimizationDecider.test(rawInstructions.get(i).getId())) {
                                 log.debug("Removing unneeded CMP instruction: {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1));
                                 processedInstruction.add(rawInstructions.get(i + 1));
@@ -50,7 +55,7 @@ public class CmpPattern implements Pattern {
             processedInstruction.add(rawInstructions.get(i));
         }
         processedInstruction.add(rawInstructions.get(rawInstructions.size()-1));
-
+        log.info("CMP pattern: {}", patternsUsed.keySet().stream().filter(key -> RoutineUtil.routineMapping.containsKey(key)).map(patternsUsed::get).mapToInt(Integer::intValue).sum());
         return processedInstruction;
     }
 

@@ -7,9 +7,12 @@ import si.fri.mag.magerl.models.opcode.PseudoOpCode;
 import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
+import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static si.fri.mag.magerl.config.BranchingConfig.BRANCHING_FACTOR;
@@ -18,7 +21,8 @@ import static si.fri.mag.magerl.models.opcode.InstructionOpCode.*;
 @Slf4j
 public class SwapPattern implements Pattern {
 
-    private final List<Integer> patternUsages = new ArrayList<>();
+    public final List<Integer> patternUsages = new ArrayList<>();
+    public final Map<String, Integer> patternsUsed = new HashMap<>();
 
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
@@ -58,6 +62,8 @@ public class SwapPattern implements Pattern {
                             log.debug("{}: Remove swapping instruction: {}", rawInstructions.get(i).getSubroutine(), rawInstructions.get(i).getRawInstruction());
                             log.debug("Unused registers: {}", rawInstructions.get(i + 1).getUnusedRegisters());
                             rawInstructions.get(i + 1).getInstruction().changeOperand(instruction.getFirstOperand(), instruction.getSecondOperand());
+                            patternsUsed.put(rawInstructions.get(i).getSubroutine(), patternsUsed.getOrDefault(rawInstructions.get(i).getSubroutine(), 0) + 1);
+
                             String substituteRegister = null;
                             int j;
                             for (j = i + 2; !rawInstructions.get(j).isPseudoInstruction() && !rawInstructions.get(j).getInstruction().isTwinSwapInstruction(instruction); j++) {
@@ -83,6 +89,7 @@ public class SwapPattern implements Pattern {
             }
             processedInstructions.add(rawInstructions.get(i));
         }
+        log.info("Swap pattern: {}", patternsUsed.keySet().stream().filter(key -> RoutineUtil.routineMapping.containsKey(key)).map(patternsUsed::get).mapToInt(Integer::intValue).sum());
 
         return processedInstructions;
     }

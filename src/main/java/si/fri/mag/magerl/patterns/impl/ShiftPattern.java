@@ -8,6 +8,7 @@ import si.fri.mag.magerl.patterns.Pattern;
 import si.fri.mag.magerl.utils.BranchingUtil;
 import si.fri.mag.magerl.utils.CopyUtil;
 import si.fri.mag.magerl.utils.RegisterUtil;
+import si.fri.mag.magerl.utils.RoutineUtil;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -18,7 +19,8 @@ import static si.fri.mag.magerl.config.BranchingConfig.NUMBER_OF_PROGRAMS;
 @Slf4j
 public class ShiftPattern implements Pattern {
 
-    private final List<Integer> patternUsages = new ArrayList<>();
+    public final List<Integer> patternUsages = new ArrayList<>();
+    public final Map<String, Integer> patternsUsed = new HashMap<>();
 
     @Override
     public List<RawInstruction> usePatternOnce(List<RawInstruction> rawInstructions, Predicate<Integer> optimizationDecider) {
@@ -33,6 +35,8 @@ public class ShiftPattern implements Pattern {
             if (isPotentiallyUselessShiftBlock(rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
                 if (wasRegisterLoadedBeforeShifting(rawInstructions.get(i), rawInstructions.get(i+1).getInstruction().getFirstOperand())) {
                     patternUsages.add(rawInstructions.get(i).getId());
+                    patternsUsed.put(rawInstructions.get(i).getSubroutine(), patternsUsed.getOrDefault(rawInstructions.get(i).getSubroutine(), 0) + 1);
+
                     if (optimizationDecider.test(rawInstructions.get(i).getId())) {
                         log.debug("Useless shifting: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
                         i += 2;
@@ -44,6 +48,7 @@ public class ShiftPattern implements Pattern {
 
             if (isPotentiallyUnusedRegisterShiftBlock(rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2))) {
                 patternUsages.add(rawInstructions.get(i).getId());
+                patternsUsed.put(rawInstructions.get(i).getSubroutine(), patternsUsed.getOrDefault(rawInstructions.get(i).getSubroutine(), 0) + 1);
                 if (optimizationDecider.test(rawInstructions.get(i).getId())) {
                     log.debug("Useless shifting with unused registers: {}, {}, {}", rawInstructions.get(i), rawInstructions.get(i + 1), rawInstructions.get(i + 2));
                     rawInstructions.get(i).setInstruction(rawInstructions.get(i).getInstruction().toBuilder()
@@ -57,6 +62,8 @@ public class ShiftPattern implements Pattern {
         }
         // Do not forget to include last two instructions!
         processedInstructions.addAll(rawInstructions.subList(rawInstructions.size() - 2, rawInstructions.size()));
+        log.info("Shift pattern: {}", patternsUsed.keySet().stream().filter(key -> RoutineUtil.routineMapping.containsKey(key)).map(patternsUsed::get).mapToInt(Integer::intValue).sum());
+
         return processedInstructions;
     }
 

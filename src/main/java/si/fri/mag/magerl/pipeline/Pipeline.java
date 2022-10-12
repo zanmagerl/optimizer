@@ -1,7 +1,6 @@
 package si.fri.mag.magerl.pipeline;
 
 import si.fri.mag.magerl.models.RawInstruction;
-import si.fri.mag.magerl.patterns.impl.SwapPattern;
 import si.fri.mag.magerl.phases.Phase;
 import si.fri.mag.magerl.phases.impl.*;
 
@@ -11,12 +10,12 @@ public interface Pipeline {
 
     List<Phase> phases = List.of(
             new StandardLibraryPhaseImpl(),
-            new CleaningPhaseImpl()
-//            new SubroutineLabelingPhaseImpl(),
-//            new GraphConstructionPhaseImpl(),
-//            new RegisterUsagesPhaseImpl(),
-//            new PatternPhaseImpl(),
-//            new SwapPhaseImpl()
+            new CleaningPhaseImpl(),
+            new SubroutineLabelingPhaseImpl(),
+            new GraphConstructionPhaseImpl(),
+            new RegisterUsagesPhaseImpl(),
+            new PatternPhaseImpl(),
+            new SwapPhaseImpl()
     );
 
     List<List<RawInstruction>> run(List<RawInstruction> rawInstructions);
